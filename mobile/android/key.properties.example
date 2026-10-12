@@ -1,0 +1,8 @@
+# Example keystore configuration template for release builds.
+# Copy this file to `key.properties` in this directory (mobile/android/) and fill in your values.
+# NEVER commit `key.properties` or `.jks` keystore files to source control.
+storePassword=YOUR_STORE_PASSWORD
+keyPassword=YOUR_KEY_PASSWORD
+keyAlias=upload
+storeFile=upload-keystore.jks
+
