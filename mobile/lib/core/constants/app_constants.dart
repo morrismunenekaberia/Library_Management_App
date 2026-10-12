@@ -1,3 +1,4 @@
+import 'api_config.dart' as config;
 export 'api_config.dart';
 
 /// Application-wide constants.
@@ -12,4 +13,7 @@ class AppConstants {
 
   /// Application display name.
   static const String appTitle = 'Library Management';
+
+  /// Backend API base URL configured via environment or default.
+  static const String apiBaseUrl = config.apiBaseUrl;
 }

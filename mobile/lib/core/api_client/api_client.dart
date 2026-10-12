@@ -3,12 +3,13 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
+import '../constants/api_config.dart';
 import '../constants/app_constants.dart';
 import '../errors/app_exceptions.dart';
 import '../token_storage/token_storage.dart';
 
 /// HTTP API client wrapping the [http] package.
-/// - Reads base URL from [AppConstants.apiBaseUrl].
+/// - Reads base URL from [apiBaseUrl].
 /// - Automatically injects the `Authorization: Bearer <token>` header if available.
 /// - Decodes JSON responses.
 /// - Maps HTTP status codes and socket errors to typed [AppException]s.
@@ -25,7 +26,7 @@ class ApiClient {
     this.onUnauthorized,
   }) : _client = client ?? http.Client(),
        _tokenStorage = tokenStorage ?? const TokenStorage(),
-       _baseUrl = baseUrl ?? AppConstants.apiBaseUrl;
+       _baseUrl = baseUrl ?? apiBaseUrl;
 
   /// Builds standardized request headers including Authorization token if available.
   Future<Map<String, String>> _buildHeaders([
