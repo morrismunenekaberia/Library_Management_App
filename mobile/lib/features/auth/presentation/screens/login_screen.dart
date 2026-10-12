@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../core/constants/api_config.dart';
 import '../controllers/auth_controller.dart';
 
 /// Screen allowing users to sign in with username and password.
@@ -196,6 +198,19 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                     ),
+
+                    // Debug-only API base URL display
+                    if (kDebugMode) ...[
+                      const SizedBox(height: 24),
+                      Text(
+                        apiBaseUrl,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),

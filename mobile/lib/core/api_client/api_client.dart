@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:http/http.dart' as http;
+
 import '../constants/app_constants.dart';
 import '../errors/app_exceptions.dart';
 import '../token_storage/token_storage.dart';
@@ -21,12 +23,14 @@ class ApiClient {
     TokenStorage? tokenStorage,
     String? baseUrl,
     this.onUnauthorized,
-  })  : _client = client ?? http.Client(),
-        _tokenStorage = tokenStorage ?? const TokenStorage(),
-        _baseUrl = baseUrl ?? AppConstants.apiBaseUrl;
+  }) : _client = client ?? http.Client(),
+       _tokenStorage = tokenStorage ?? const TokenStorage(),
+       _baseUrl = baseUrl ?? AppConstants.apiBaseUrl;
 
   /// Builds standardized request headers including Authorization token if available.
-  Future<Map<String, String>> _buildHeaders([Map<String, String>? customHeaders]) async {
+  Future<Map<String, String>> _buildHeaders([
+    Map<String, String>? customHeaders,
+  ]) async {
     final headers = <String, String>{
       'Content-Type': 'application/json',
       'Accept': 'application/json',
@@ -64,7 +68,8 @@ class ApiClient {
   /// Processes HTTP response and maps status codes to typed exceptions.
   dynamic _handleResponse(http.Response response) {
     dynamic decodedBody;
-    String errorMessage = 'Request failed with status code ${response.statusCode}';
+    String errorMessage =
+        'Request failed with status code ${response.statusCode}';
 
     if (response.body.isNotEmpty) {
       try {
@@ -180,10 +185,7 @@ class ApiClient {
   }
 
   /// Executes an HTTP DELETE request.
-  Future<dynamic> delete(
-    String path, {
-    Map<String, String>? headers,
-  }) async {
+  Future<dynamic> delete(String path, {Map<String, String>? headers}) async {
     try {
       final uri = _resolveUri(path);
       final resolvedHeaders = await _buildHeaders(headers);
@@ -217,4 +219,3 @@ extension _MapFilterExtension on Map<String, dynamic> {
     return result;
   }
 }
-

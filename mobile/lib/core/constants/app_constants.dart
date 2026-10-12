@@ -1,10 +1,10 @@
+export 'api_config.dart';
+
 /// Application-wide constants.
 class AppConstants {
   AppConstants._();
 
   /// Base URL for the Library Management Backend API.
-  /// Defaults to `http://10.0.2.2:3000/api` for the Android emulator.
-  /// For a physical phone, pass `--dart-define=API_BASE_URL=http://<YOUR_LAN_IP>:3000/api`.
   static const String apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
     defaultValue: 'http://10.0.2.2:3000/api',
