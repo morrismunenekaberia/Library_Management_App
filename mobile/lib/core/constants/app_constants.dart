@@ -12,3 +12,4 @@ class AppConstants {
   /// Application display name.
   static const String appTitle = 'Library Management';
 }
+
