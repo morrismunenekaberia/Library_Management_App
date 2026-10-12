@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../controllers/auth_controller.dart';
 
 /// Home screen placeholder displaying authenticated user's role and logout action.
@@ -73,7 +74,8 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               FilledButton.icon(
-                onPressed: () => context.read<AuthController>().restoreSession(),
+                onPressed: () =>
+                    context.read<AuthController>().restoreSession(),
                 icon: const Icon(Icons.refresh_rounded),
                 label: const Text('Retry'),
               ),
@@ -188,4 +190,3 @@ class HomeScreen extends StatelessWidget {
     );
   }
 }
-

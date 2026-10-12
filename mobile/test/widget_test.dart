@@ -45,6 +45,8 @@ void main() {
     expect(find.text('Username or Admission Number'), findsOneWidget);
     expect(find.text('Password'), findsOneWidget);
     expect(find.text('Sign In'), findsOneWidget);
+    // Verifies debug-only base URL display
+    expect(find.text('http://10.0.2.2:3000/api'), findsOneWidget);
   });
 
   testWidgets('Authenticated user is redirected to HomeScreen displaying their role',

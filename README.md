@@ -121,23 +121,23 @@ A university course project (Mobile Application 2) implementing a Library Manage
 2. **Configure API Base URL**:
    The mobile app connects to the backend REST API via `--dart-define=API_BASE_URL=...`.
 
-   - **Android Emulator**:
-     The Android emulator accesses your host computer through the loopback address `10.0.2.2`:
+   - **Emulator**:
      ```bash
-     flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000/api
+     flutter run
      ```
-     *(This is already the default value if omitted).*
+     *(Defaults to `http://10.0.2.2:3000/api`)*
 
    - **Physical Android Device (via Wi-Fi / LAN)**:
-     Find your computer's local IP on the network:
      ```bash
-     ip -4 addr show | grep inet
-     # Example: 192.168.1.50
+     flutter run --dart-define=API_BASE_URL=http://192.168.137.171:3000/api
      ```
-     Ensure your phone and computer are on the same Wi-Fi network, then launch:
+
+   - **Release APK**:
      ```bash
-     flutter run --dart-define=API_BASE_URL=http://192.168.1.50:3000/api
+     flutter build apk --release --dart-define=API_BASE_URL=http://192.168.137.171:3000/api
      ```
+
+   > **Note**: The IP address (`192.168.137.171`) is your computer's local LAN IP and must be updated whenever your network or IP address changes. Ensure that both your computer running the Node.js API and your physical phone are connected to the same Wi-Fi network.
 
 3. **Run Mobile Static Analysis & Tests**:
    ```bash

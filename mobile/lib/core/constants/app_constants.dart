@@ -4,12 +4,6 @@ export 'api_config.dart';
 class AppConstants {
   AppConstants._();
 
-  /// Base URL for the Library Management Backend API.
-  static const String apiBaseUrl = String.fromEnvironment(
-    'API_BASE_URL',
-    defaultValue: 'http://10.0.2.2:3000/api',
-  );
-
   /// Key used to store the JWT auth token securely in FlutterSecureStorage.
   static const String tokenStorageKey = 'jwt_token';
 

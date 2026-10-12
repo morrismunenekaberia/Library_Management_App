@@ -1,17 +1,32 @@
-# library_mobile
+# Library Management Mobile App
 
-A new Flutter project.
+Flutter client for the Library Management application.
 
-## Getting Started
+## API Configuration & Running
 
-This project is a starting point for a Flutter application.
+The backend API base URL is configured at run/build time using `--dart-define=API_BASE_URL=...`.
 
-A few resources to get you started if this is your first Flutter project:
+- **Emulator**:
+  ```bash
+  flutter run
+  ```
+  *(Defaults to `http://10.0.2.2:3000/api`)*
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+- **Phone (physical Android device over Wi-Fi)**:
+  ```bash
+  flutter run --dart-define=API_BASE_URL=http://192.168.137.171:3000/api
+  ```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- **Release APK**:
+  ```bash
+  flutter build apk --release --dart-define=API_BASE_URL=http://192.168.137.171:3000/api
+  ```
+
+> **Note**: The IP address (`192.168.137.171`) is your computer's local LAN IP and must be updated whenever your network or IP address changes. Ensure that both your computer running the Node.js API and your physical phone are connected to the same Wi-Fi network.
+
+## Testing & Analysis
+
+```bash
+flutter analyze
+flutter test
+```

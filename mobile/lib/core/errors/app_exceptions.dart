@@ -42,6 +42,7 @@ class ServerException extends AppException {
 /// Thrown when network connection is unreachable, timed out, or drops.
 class NetworkException extends AppException {
   const NetworkException([
-    super.message = 'Unable to connect to the server. Please check your network.',
+    super.message =
+        'Cannot reach the server. Check Wi-Fi and that the API is running.',
   ]);
 }
