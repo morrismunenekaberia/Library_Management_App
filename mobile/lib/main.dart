@@ -22,6 +22,12 @@ import 'features/books/domain/usecases/get_book.dart';
 import 'features/books/domain/usecases/list_books.dart';
 import 'features/books/domain/usecases/update_book.dart';
 import 'features/books/presentation/controllers/books_controller.dart';
+import 'features/dashboard/data/datasources/dashboard_remote_data_source.dart';
+import 'features/dashboard/data/repositories/dashboard_repository_impl.dart';
+import 'features/dashboard/domain/entities/dashboard_stats.dart';
+import 'features/dashboard/domain/repositories/dashboard_repository.dart';
+import 'features/dashboard/domain/usecases/get_librarian_dashboard.dart';
+import 'features/dashboard/presentation/controllers/dashboard_controller.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -68,6 +74,14 @@ void main() {
     deleteBookUseCase: deleteBook,
   );
 
+  // Dashboard feature dependency wiring
+  final dashboardRemoteDataSource = DashboardRemoteDataSourceImpl(apiClient);
+  final dashboardRepository = DashboardRepositoryImpl(dashboardRemoteDataSource);
+  final getLibrarianDashboard = GetLibrarianDashboard(dashboardRepository);
+  final dashboardController = DashboardController(
+    getLibrarianDashboardUseCase: getLibrarianDashboard,
+  );
+
   // Restore session from persisted credentials on app startup
   authController.restoreSession();
 
@@ -78,12 +92,15 @@ void main() {
         Provider<ApiClient>.value(value: apiClient),
         Provider<AuthRepository>.value(value: authRepository),
         Provider<BookRepository>.value(value: bookRepository),
+        Provider<DashboardRepository>.value(value: dashboardRepository),
         ChangeNotifierProvider<AuthController>.value(value: authController),
         ChangeNotifierProvider<BooksController>.value(value: booksController),
+        ChangeNotifierProvider<DashboardController>.value(value: dashboardController),
       ],
       child: LibraryApp(
         authController: authController,
         booksController: booksController,
+        dashboardController: dashboardController,
       ),
     ),
   );
@@ -92,11 +109,13 @@ void main() {
 class LibraryApp extends StatefulWidget {
   final AuthController authController;
   final BooksController? booksController;
+  final DashboardController? dashboardController;
 
   const LibraryApp({
     super.key,
     required this.authController,
     this.booksController,
+    this.dashboardController,
   });
 
   @override
@@ -106,6 +125,7 @@ class LibraryApp extends StatefulWidget {
 class _LibraryAppState extends State<LibraryApp> {
   late final _router = AppRouter.createRouter(widget.authController);
   late final BooksController _effectiveBooksController;
+  late final DashboardController _effectiveDashboardController;
 
   @override
   void initState() {
@@ -117,6 +137,11 @@ class _LibraryAppState extends State<LibraryApp> {
           createBookUseCase: const CreateBook(_NoopBookRepository()),
           updateBookUseCase: const UpdateBook(_NoopBookRepository()),
           deleteBookUseCase: const DeleteBook(_NoopBookRepository()),
+        );
+
+    _effectiveDashboardController = widget.dashboardController ??
+        DashboardController(
+          getLibrarianDashboardUseCase: const GetLibrarianDashboard(_NoopDashboardRepository()),
         );
   }
 
@@ -130,6 +155,9 @@ class _LibraryAppState extends State<LibraryApp> {
         ChangeNotifierProvider<BooksController>.value(
           value: _effectiveBooksController,
         ),
+        ChangeNotifierProvider<DashboardController>.value(
+          value: _effectiveDashboardController,
+        ),
       ],
       child: MaterialApp.router(
         title: AppConstants.appTitle,
@@ -141,6 +169,20 @@ class _LibraryAppState extends State<LibraryApp> {
       ),
     );
   }
+}
+
+/// Fallback repository used only if [LibraryApp] is constructed without [DashboardController] in tests.
+class _NoopDashboardRepository implements DashboardRepository {
+  const _NoopDashboardRepository();
+
+  @override
+  Future<DashboardStats> getLibrarianDashboard() async => const DashboardStats(
+        totalBooks: 0,
+        activeLoans: 0,
+        overdueLoans: 0,
+        totalMembers: 0,
+        overdueLoansList: [],
+      );
 }
 
 /// Fallback repository used only if [LibraryApp] is constructed without [BooksController] in tests.
