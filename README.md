@@ -71,14 +71,22 @@ A university course project (Mobile Application 2) implementing a Library Manage
 
 3. **Initialize the Database**:
    Ensure PostgreSQL is running and the database specified in `DB_NAME` exists.
-   Then execute the database schema and seed script:
+   Then execute the database initialization or demo seeding:
    ```bash
+   # Option A: Baseline initialization (schema + 5 books + 3 members + admin)
    npm run db:init
+
+   # Option B: Seed full demo presentation data (25 books, 10 active members + accounts, 8 loans)
+   npm run db:demo
+
+   # Option C: Complete reset (drops/recreates schema and seeds demo data; blocked on production)
+   npm run db:reset
    ```
-   This script will:
-   - Create tables: `members`, `users`, `books`, and `loans`.
-   - Seed one admin librarian (`admin` / password from `SEED_ADMIN_PASSWORD`).
-   - Seed 5 sample books and 3 sample members.
+
+   **Demo Accounts**:
+   - **Librarian**: `admin` / `admin123`
+   - **Members (10 accounts)**: `ADM-2024-001` through `ADM-2024-010` / `Member123!`
+   - See [backend/README.md](backend/README.md) for full breakdown of all books, categories, and loans.
 
 4. **Start the Backend Server**:
    - Production mode:
@@ -159,7 +167,10 @@ A university course project (Mobile Application 2) implementing a Library Manage
 
 ### Hardening & Resilience
 - **Automatic Logout on 401**: Any API response returning `401 Unauthorized` automatically invalidates the stored session and redirects to the login screen.
+- **Login Rate Limiting**: In-memory rate limiter on `POST /api/auth/login` (10 attempts per 15 minutes per IP) prevents brute-force attacks and returns HTTP 429 with `Retry-After`.
+- **HTTP Security & CORS**: `helmet` security headers enabled and restricted CORS policy rejecting untrusted origins while permitting native mobile requests and configured hosts.
+- **Information Leakage Prevention**: Stack traces and internal database errors are never returned in HTTP responses; unexpected errors are logged on the server and returned as a generic 500.
 - **Error Handling with Retry**: Network disconnections and server errors display clear human-readable messages along with a dedicated "Retry" action.
 - **Input Validation Alignment**: Client form validators match PostgreSQL schema constraints (`VARCHAR` limits, integer checks) preventing unexpected runtime errors.
-- **Security**: Passwords hashed with `bcrypt`, authentication via signed JWTs, parameterized SQL queries against SQL injection, and zero credentials committed to version control.
+- **Security & Parameterized Queries**: Passwords hashed with `bcrypt`, authentication via signed JWTs, 100% parameterized SQL queries against SQL injection, and zero credentials committed to version control (`.gitignore` covers `.env`, `build/`, `node_modules/`, `*.apk`, `*.jks`).
 

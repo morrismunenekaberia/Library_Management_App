@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 
 // --- Config ---
 const env = require('./config/env');
@@ -100,7 +101,29 @@ const loanController = new LoanController({
 // ============================================================
 const app = express();
 
-app.use(cors());
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
+  : ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://10.0.2.2:3000'];
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow non-browser clients (Flutter ApiClient, curl, mobile native) with no origin header
+    if (!origin) return callback(null, true);
+    if (
+      allowedOrigins.includes(origin) ||
+      process.env.NODE_ENV !== 'production'
+    ) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS policy'));
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+};
+
+app.use(helmet());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // --- Routes ---

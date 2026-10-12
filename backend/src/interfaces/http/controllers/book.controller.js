@@ -33,7 +33,16 @@ class BookController {
    */
   async list(req, res, next) {
     try {
-      const search = req.query.search;
+      let search;
+      if (req.query.search !== undefined) {
+        if (typeof req.query.search !== 'string') {
+          throw new ValidationError('Search query parameter must be a string');
+        }
+        search = req.query.search.trim();
+        if (search.length > 200) {
+          throw new ValidationError('Search query parameter cannot exceed 200 characters');
+        }
+      }
       const books = await this.listBooks.execute(search);
       return res.status(200).json(books);
     } catch (err) {

@@ -161,6 +161,9 @@ class _BookFormScreenState extends State<BookFormScreen> {
                       if (value == null || value.trim().isEmpty) {
                         return 'Title is required';
                       }
+                      if (value.trim().length > 300) {
+                        return 'Title cannot exceed 300 characters';
+                      }
                       return null;
                     },
                   ),
@@ -178,6 +181,9 @@ class _BookFormScreenState extends State<BookFormScreen> {
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return 'Author is required';
+                      }
+                      if (value.trim().length > 300) {
+                        return 'Author cannot exceed 300 characters';
                       }
                       return null;
                     },
@@ -197,6 +203,9 @@ class _BookFormScreenState extends State<BookFormScreen> {
                       if (value == null || value.trim().isEmpty) {
                         return 'ISBN is required';
                       }
+                      if (value.trim().length > 20) {
+                        return 'ISBN cannot exceed 20 characters';
+                      }
                       return null;
                     },
                   ),
@@ -211,6 +220,12 @@ class _BookFormScreenState extends State<BookFormScreen> {
                       prefixIcon: Icon(Icons.category_rounded),
                     ),
                     textInputAction: TextInputAction.next,
+                    validator: (value) {
+                      if (value != null && value.trim().length > 100) {
+                        return 'Category cannot exceed 100 characters';
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 16),
 

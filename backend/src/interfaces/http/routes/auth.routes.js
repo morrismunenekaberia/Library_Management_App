@@ -1,5 +1,11 @@
 const { Router } = require('express');
 const { authenticate } = require('../middleware/auth.middleware');
+const { createLoginRateLimiter } = require('../middleware/rate-limiter.middleware');
+
+const loginLimiter = createLoginRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  maxAttempts: 10,
+});
 
 /**
  * Mounts authentication routes.
@@ -8,7 +14,7 @@ const { authenticate } = require('../middleware/auth.middleware');
 function authRoutes(authController) {
   const router = Router();
 
-  router.post('/login', (req, res, next) =>
+  router.post('/login', loginLimiter, (req, res, next) =>
     authController.login(req, res, next)
   );
 

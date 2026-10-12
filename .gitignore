@@ -27,3 +27,13 @@ build/
 .DS_Store
 *.swp
 *.class
+
+# Android binaries and keystores
+*.apk
+**/*.apk
+*.aab
+**/*.aab
+*.jks
+**/*.jks
+*.keystore
+**/*.keystore

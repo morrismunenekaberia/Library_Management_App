@@ -7,6 +7,8 @@
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "db:init": "node db/init.js",
+    "db:demo": "node db/demo.js",
+    "db:reset": "node db/reset.js",
     "test": "node --test test/"
   },
   "dependencies": {
@@ -14,6 +16,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.3",
     "pg": "^8.13.1"
   }

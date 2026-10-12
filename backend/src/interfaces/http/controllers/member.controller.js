@@ -39,7 +39,16 @@ class MemberController {
    */
   async list(req, res, next) {
     try {
-      const search = req.query.search;
+      let search;
+      if (req.query.search !== undefined) {
+        if (typeof req.query.search !== 'string') {
+          throw new ValidationError('Search query parameter must be a string');
+        }
+        search = req.query.search.trim();
+        if (search.length > 200) {
+          throw new ValidationError('Search query parameter cannot exceed 200 characters');
+        }
+      }
       const members = await this.listMembers.execute(search);
       return res.status(200).json(members);
     } catch (err) {
