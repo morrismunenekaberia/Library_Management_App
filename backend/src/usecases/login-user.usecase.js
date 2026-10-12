@@ -35,7 +35,12 @@ class LoginUser {
     }
 
     const token = jwt.sign(
-      { id: user.id, role: user.role, memberId: user.memberId },
+      {
+        id: user.id,
+        username: user.username,
+        role: user.role,
+        memberId: user.memberId,
+      },
       this.jwtSecret,
       { expiresIn: '8h' }
     );

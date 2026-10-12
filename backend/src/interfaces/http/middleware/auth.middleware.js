@@ -20,6 +20,7 @@ function authenticate(req, res, next) {
     const decoded = jwt.verify(token, env.jwtSecret);
     req.user = {
       id: decoded.id,
+      username: decoded.username || null,
       role: decoded.role,
       memberId: decoded.memberId !== undefined ? decoded.memberId : null,
     };
