@@ -21,6 +21,7 @@ function authenticate(req, res, next) {
     req.user = {
       id: decoded.id,
       role: decoded.role,
+      memberId: decoded.memberId !== undefined ? decoded.memberId : null,
     };
     next();
   } catch (err) {
