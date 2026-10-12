@@ -1,11 +1,29 @@
-# Backend
-backend/node_modules/
-backend/.env
+# Secrets & Environment
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
 
-# Mobile (Flutter future placeholders)
-mobile/.dart_tool/
-mobile/.flutter-plugins
-mobile/.flutter-plugins-dependencies
-mobile/.packages
-mobile/build/
+# Dependencies
+node_modules/
+**/node_modules/
+.pub-cache/
+**/pub-cache/
 
+# Build artifacts
+build/
+**/build/
+.dart_tool/
+**/.dart_tool/
+.packages
+**/.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Logs & OS Files
+*.log
+.DS_Store
+*.swp
+*.class

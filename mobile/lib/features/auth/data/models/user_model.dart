@@ -21,12 +21,7 @@ class UserModel extends User {
 
   /// Converts the user instance to a JSON map.
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'username': username,
-      'role': role,
-      'memberId': memberId,
-    };
+    return {'id': id, 'username': username, 'role': role, 'memberId': memberId};
   }
 
   /// Creates a [UserModel] from a domain [User] instance.
@@ -39,4 +34,3 @@ class UserModel extends User {
     );
   }
 }
-

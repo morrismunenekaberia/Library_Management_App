@@ -17,11 +17,23 @@ function validateCreateBook(req, res, next) {
   if (!isbn) {
     return next(new ValidationError('ISBN is required and must be a non-empty string'));
   }
+  if (isbn.length > 20) {
+    return next(new ValidationError('ISBN cannot exceed 20 characters'));
+  }
   if (!title) {
     return next(new ValidationError('Title is required and must be a non-empty string'));
   }
+  if (title.length > 300) {
+    return next(new ValidationError('Title cannot exceed 300 characters'));
+  }
   if (!author) {
     return next(new ValidationError('Author is required and must be a non-empty string'));
+  }
+  if (author.length > 300) {
+    return next(new ValidationError('Author cannot exceed 300 characters'));
+  }
+  if (category && category.length > 100) {
+    return next(new ValidationError('Category cannot exceed 100 characters'));
   }
   if (
     totalCopiesRaw === undefined ||
@@ -82,12 +94,18 @@ function validateUpdateBook(req, res, next) {
     if (typeof body.isbn !== 'string' || !body.isbn.trim()) {
       return next(new ValidationError('ISBN must be a non-empty string'));
     }
+    if (body.isbn.trim().length > 20) {
+      return next(new ValidationError('ISBN cannot exceed 20 characters'));
+    }
     updates.isbn = body.isbn.trim();
   }
 
   if (body.title !== undefined) {
     if (typeof body.title !== 'string' || !body.title.trim()) {
       return next(new ValidationError('Title must be a non-empty string'));
+    }
+    if (body.title.trim().length > 300) {
+      return next(new ValidationError('Title cannot exceed 300 characters'));
     }
     updates.title = body.title.trim();
   }
@@ -96,12 +114,18 @@ function validateUpdateBook(req, res, next) {
     if (typeof body.author !== 'string' || !body.author.trim()) {
       return next(new ValidationError('Author must be a non-empty string'));
     }
+    if (body.author.trim().length > 300) {
+      return next(new ValidationError('Author cannot exceed 300 characters'));
+    }
     updates.author = body.author.trim();
   }
 
   if (body.category !== undefined) {
-    updates.category =
-      typeof body.category === 'string' ? body.category.trim() : null;
+    const trimmed = typeof body.category === 'string' ? body.category.trim() : null;
+    if (trimmed && trimmed.length > 100) {
+      return next(new ValidationError('Category cannot exceed 100 characters'));
+    }
+    updates.category = trimmed;
   }
 
   const totalCopiesRaw =

@@ -85,7 +85,8 @@ void main() {
       );
     });
 
-    test('Maps 401 Unauthorized to UnauthorizedException', () async {
+    test('Maps 401 Unauthorized to UnauthorizedException and triggers onUnauthorized callback', () async {
+      bool unauthorizedTriggered = false;
       final mockClient = MockClient((request) async {
         return http.Response(jsonEncode({'error': 'Invalid token'}), 401);
       });
@@ -94,12 +95,16 @@ void main() {
         client: mockClient,
         tokenStorage: fakeTokenStorage,
         baseUrl: 'http://localhost:3000/api',
+        onUnauthorized: () {
+          unauthorizedTriggered = true;
+        },
       );
 
-      expect(
+      await expectLater(
         () => apiClient.get('/protected'),
         throwsA(isA<UnauthorizedException>()),
       );
+      expect(unauthorizedTriggered, isTrue);
     });
 
     test('Maps 403 Forbidden to ForbiddenException', () async {

@@ -101,4 +101,12 @@ class AuthController extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  /// Handles 401 Unauthorized signal from ApiClient.
+  /// If user is authenticated, logs them out immediately and resets session.
+  Future<void> handleSessionExpired() async {
+    if (isAuthenticated) {
+      await logout();
+    }
+  }
 }

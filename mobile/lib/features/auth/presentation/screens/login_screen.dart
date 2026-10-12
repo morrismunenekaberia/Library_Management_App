@@ -130,6 +130,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         if (value == null || value.trim().isEmpty) {
                           return 'Please enter your username';
                         }
+                        if (value.trim().length > 100) {
+                          return 'Username cannot exceed 100 characters';
+                        }
                         return null;
                       },
                     ),

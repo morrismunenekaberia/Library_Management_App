@@ -10,4 +10,3 @@ class LogoutUser {
     return _repository.logout();
   }
 }
-

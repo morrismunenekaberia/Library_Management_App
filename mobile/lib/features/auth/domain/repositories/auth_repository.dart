@@ -3,10 +3,7 @@ import '../entities/user.dart';
 /// Abstract contract for authentication data operations.
 abstract class AuthRepository {
   /// Authenticates with username and password, persisting the received token.
-  Future<User> login({
-    required String username,
-    required String password,
-  });
+  Future<User> login({required String username, required String password});
 
   /// Invalidates session on the backend and purges stored credentials.
   Future<void> logout();
@@ -15,4 +12,3 @@ abstract class AuthRepository {
   /// Returns null if no valid token exists or verification fails.
   Future<User?> restoreSession();
 }
-

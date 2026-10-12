@@ -29,72 +29,157 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Center(
+      body: _buildBody(context, theme, authController, user, roleLabel),
+    );
+  }
+
+  Widget _buildBody(
+    BuildContext context,
+    ThemeData theme,
+    AuthController authController,
+    dynamic user,
+    String roleLabel,
+  ) {
+    if (authController.status == AuthStatus.loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (authController.errorMessage != null && user == null) {
+      return Center(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 420),
-            child: Card(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CircleAvatar(
-                      radius: 36,
-                      backgroundColor: theme.colorScheme.primaryContainer,
-                      child: Icon(
-                        user?.isLibrarian == true
-                            ? Icons.admin_panel_settings_rounded
-                            : Icons.person_rounded,
-                        size: 40,
-                        color: theme.colorScheme.onPrimaryContainer,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Welcome, ${user?.username ?? "User"}',
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.secondaryContainer,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        'Role: $roleLabel',
-                        style: TextStyle(
-                          color: theme.colorScheme.onSecondaryContainer,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      'Home screen placeholder. Feature navigation will be implemented here.',
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    OutlinedButton.icon(
-                      onPressed: () {
-                        context.read<AuthController>().logout();
-                      },
-                      icon: const Icon(Icons.logout_rounded, size: 18),
-                      label: const Text('Sign Out'),
-                    ),
-                  ],
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.error_outline_rounded,
+                size: 56,
+                color: theme.colorScheme.error,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Authentication Error',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
                 ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                authController.errorMessage!,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 20),
+              FilledButton.icon(
+                onPressed: () => context.read<AuthController>().restoreSession(),
+                icon: const Icon(Icons.refresh_rounded),
+                label: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (user == null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.person_off_outlined,
+                size: 56,
+                color: theme.colorScheme.outline,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'No Active Session',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text('Please sign in to access your library account.'),
+              const SizedBox(height: 20),
+              FilledButton(
+                onPressed: () => context.read<AuthController>().logout(),
+                child: const Text('Go to Login'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 420),
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircleAvatar(
+                    radius: 36,
+                    backgroundColor: theme.colorScheme.primaryContainer,
+                    child: Icon(
+                      user.isLibrarian == true
+                          ? Icons.admin_panel_settings_rounded
+                          : Icons.person_rounded,
+                      size: 40,
+                      color: theme.colorScheme.onPrimaryContainer,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Welcome, ${user.username ?? "User"}',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.secondaryContainer,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      'Role: $roleLabel',
+                      style: TextStyle(
+                        color: theme.colorScheme.onSecondaryContainer,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Home screen placeholder. Feature navigation will be implemented here.',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      context.read<AuthController>().logout();
+                    },
+                    icon: const Icon(Icons.logout_rounded, size: 18),
+                    label: const Text('Sign Out'),
+                  ),
+                ],
               ),
             ),
           ),

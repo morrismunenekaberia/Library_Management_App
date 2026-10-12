@@ -25,6 +25,10 @@ class AuthController {
         throw new ValidationError('Username and password are required');
       }
 
+      if (username.trim().length > 100) {
+        throw new ValidationError('Username cannot exceed 100 characters');
+      }
+
       const result = await this.loginUserUseCase.execute({
         username: username.trim(),
         password,

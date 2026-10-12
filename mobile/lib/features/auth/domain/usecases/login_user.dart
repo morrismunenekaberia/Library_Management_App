@@ -7,14 +7,7 @@ class LoginUser {
 
   const LoginUser(this._repository);
 
-  Future<User> call({
-    required String username,
-    required String password,
-  }) {
-    return _repository.login(
-      username: username,
-      password: password,
-    );
+  Future<User> call({required String username, required String password}) {
+    return _repository.login(username: username, password: password);
   }
 }
-

@@ -14,11 +14,13 @@ class ApiClient {
   final http.Client _client;
   final TokenStorage _tokenStorage;
   final String _baseUrl;
+  void Function()? onUnauthorized;
 
   ApiClient({
     http.Client? client,
     TokenStorage? tokenStorage,
     String? baseUrl,
+    this.onUnauthorized,
   })  : _client = client ?? http.Client(),
         _tokenStorage = tokenStorage ?? const TokenStorage(),
         _baseUrl = baseUrl ?? AppConstants.apiBaseUrl;
@@ -85,6 +87,7 @@ class ApiClient {
       case 400:
         throw ValidationException(errorMessage);
       case 401:
+        onUnauthorized?.call();
         throw UnauthorizedException(errorMessage);
       case 403:
         throw ForbiddenException(errorMessage);

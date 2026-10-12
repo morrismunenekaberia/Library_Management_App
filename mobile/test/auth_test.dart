@@ -122,5 +122,24 @@ void main() {
       expect(authController.role, 'member');
       expect(authController.user?.isMember, isTrue);
     });
+
+    test('AuthController.handleSessionExpired logs out authenticated user on 401 signal', () async {
+      await authController.login('admin', 'admin123');
+      expect(authController.isAuthenticated, isTrue);
+
+      await authController.handleSessionExpired();
+
+      expect(authController.isAuthenticated, isFalse);
+      expect(authController.status, AuthStatus.unauthenticated);
+      expect(authController.user, isNull);
+    });
+
+    test('AuthController.handleSessionExpired does nothing if user is already unauthenticated', () async {
+      expect(authController.isAuthenticated, isFalse);
+
+      await authController.handleSessionExpired();
+
+      expect(authController.isAuthenticated, isFalse);
+    });
   });
 }
