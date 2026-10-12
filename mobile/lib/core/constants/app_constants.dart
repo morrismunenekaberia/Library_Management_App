@@ -12,7 +12,7 @@ class AppConstants {
   static const String userStorageKey = 'cached_user';
 
   /// Application display name.
-  static const String appTitle = 'Library Management';
+  static const String appTitle = 'Library Manager';
 
   /// Backend API base URL configured via environment or default.
   static const String apiBaseUrl = config.apiBaseUrl;

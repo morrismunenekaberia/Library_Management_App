@@ -40,7 +40,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verifies that unauthenticated user sees LoginScreen
-    expect(find.text('Library Management'), findsOneWidget);
+    expect(find.text('Library Manager'), findsOneWidget);
     expect(find.text('Sign in to your account'), findsOneWidget);
     expect(find.text('Username or Admission Number'), findsOneWidget);
     expect(find.text('Password'), findsOneWidget);

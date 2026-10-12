@@ -1,6 +1,6 @@
-# Library Management Mobile App
+# Library Manager Mobile App
 
-Flutter client for the Library Management application.
+Flutter client for the Library Manager application.
 
 ## API Configuration & Running
 
