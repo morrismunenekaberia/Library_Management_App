@@ -69,3 +69,4 @@ class BookRepository {
 }
 
 module.exports = BookRepository;
+

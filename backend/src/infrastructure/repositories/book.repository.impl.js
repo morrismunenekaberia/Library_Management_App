@@ -169,3 +169,4 @@ class PostgresBookRepository extends BookRepository {
 }
 
 module.exports = PostgresBookRepository;
+
