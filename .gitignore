@@ -1,0 +1,11 @@
+# Backend
+backend/node_modules/
+backend/.env
+
+# Mobile (Flutter future placeholders)
+mobile/.dart_tool/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/.packages
+mobile/build/
+
