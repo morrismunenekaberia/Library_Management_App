@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+
 import '../../domain/entities/book.dart';
 import '../controllers/books_controller.dart';
 
@@ -10,11 +11,7 @@ class BookFormScreen extends StatefulWidget {
   final int? bookId;
   final Book? initialBook;
 
-  const BookFormScreen({
-    super.key,
-    this.bookId,
-    this.initialBook,
-  });
+  const BookFormScreen({super.key, this.bookId, this.initialBook});
 
   @override
   State<BookFormScreen> createState() => _BookFormScreenState();
@@ -110,9 +107,7 @@ class _BookFormScreenState extends State<BookFormScreen> {
     final formError = booksController.formErrorMessage;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(isEditing ? 'Edit Book' : 'Add New Book'),
-      ),
+      appBar: AppBar(title: Text(isEditing ? 'Edit Book' : 'Add New Book')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Center(
@@ -166,9 +161,6 @@ class _BookFormScreenState extends State<BookFormScreen> {
                       if (value == null || value.trim().isEmpty) {
                         return 'Title is required';
                       }
-                      if (value.trim().length > 300) {
-                        return 'Title cannot exceed 300 characters';
-                      }
                       return null;
                     },
                   ),
@@ -186,9 +178,6 @@ class _BookFormScreenState extends State<BookFormScreen> {
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return 'Author is required';
-                      }
-                      if (value.trim().length > 300) {
-                        return 'Author cannot exceed 300 characters';
                       }
                       return null;
                     },
@@ -208,9 +197,6 @@ class _BookFormScreenState extends State<BookFormScreen> {
                       if (value == null || value.trim().isEmpty) {
                         return 'ISBN is required';
                       }
-                      if (value.trim().length > 20) {
-                        return 'ISBN cannot exceed 20 characters';
-                      }
                       return null;
                     },
                   ),
@@ -225,12 +211,6 @@ class _BookFormScreenState extends State<BookFormScreen> {
                       prefixIcon: Icon(Icons.category_rounded),
                     ),
                     textInputAction: TextInputAction.next,
-                    validator: (value) {
-                      if (value != null && value.trim().length > 100) {
-                        return 'Category cannot exceed 100 characters';
-                      }
-                      return null;
-                    },
                   ),
                   const SizedBox(height: 16),
 
@@ -288,4 +268,3 @@ class _BookFormScreenState extends State<BookFormScreen> {
     );
   }
 }
-

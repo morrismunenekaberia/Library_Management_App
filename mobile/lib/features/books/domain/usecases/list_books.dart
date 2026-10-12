@@ -11,4 +11,3 @@ class ListBooks {
     return _repository.listBooks(search: search);
   }
 }
-

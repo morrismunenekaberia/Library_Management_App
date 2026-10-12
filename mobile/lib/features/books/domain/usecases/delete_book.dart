@@ -10,4 +10,3 @@ class DeleteBook {
     return _repository.deleteBook(id);
   }
 }
-
