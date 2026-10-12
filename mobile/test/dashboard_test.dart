@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:library_mobile/core/api_client/api_client.dart';
 import 'package:library_mobile/features/auth/domain/entities/user.dart';
+import 'package:library_mobile/features/auth/domain/usecases/login_user.dart';
+import 'package:library_mobile/features/auth/domain/usecases/logout_user.dart';
+import 'package:library_mobile/features/auth/domain/usecases/restore_session.dart';
 import 'package:library_mobile/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:library_mobile/features/dashboard/data/datasources/dashboard_remote_data_source.dart';
 import 'package:library_mobile/features/dashboard/domain/entities/dashboard_stats.dart';
 import 'package:library_mobile/features/dashboard/domain/repositories/dashboard_repository.dart';
 import 'package:library_mobile/features/dashboard/domain/usecases/get_librarian_dashboard.dart';
 import 'package:library_mobile/features/dashboard/presentation/controllers/dashboard_controller.dart';
-import 'package:library_mobile/features/dashboard/presentation/widgets/dashboard_metric_card.dart';
-import 'package:library_mobile/features/dashboard/presentation/widgets/overdue_loan_tile.dart';
 import 'package:library_mobile/main.dart';
 
 import 'widget_test.dart';
@@ -214,3 +215,4 @@ void main() {
     });
   });
 }
+
