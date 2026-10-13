@@ -45,11 +45,11 @@ dev_dependencies:
   flutter_native_splash: ^2.4.4
 
 flutter_launcher_icons:
-  android: "launcher_icon"
+  android: true
   ios: false
-  image_path: "assets/icon/app_icon.png"
-  adaptive_icon_background: "#1E3A8A"
-  adaptive_icon_foreground: "assets/icon/app_icon_foreground.png"
+  image_path: "assets/icon/icon.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/icon/app_icon.png"
 
 flutter_native_splash:
   color: "#D7D5D6"
@@ -71,6 +71,7 @@ flutter:
 
   assets:
     - assets/video/splash.mp4
+    - assets/icon/
 
   # To add assets to your application, add an assets section, like this:
   # assets:
