@@ -180,7 +180,7 @@ class _LoanListScreenState extends State<LoanListScreen>
 
           // Main list area
           Expanded(
-            child: _buildBody(context, loansController, theme),
+            child: _buildBody(context, loansController, theme, isReadOnly),
           ),
         ],
       ),
@@ -191,6 +191,7 @@ class _LoanListScreenState extends State<LoanListScreen>
     BuildContext context,
     LoansController controller,
     ThemeData theme,
+    bool isReadOnly,
   ) {
     if (controller.isLoading) {
       return const LoadingIndicator(message: 'Loading loans...');

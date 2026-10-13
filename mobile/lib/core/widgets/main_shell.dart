@@ -7,7 +7,6 @@ import '../../features/books/presentation/screens/book_list_screen.dart';
 import '../../features/loans/presentation/screens/loan_list_screen.dart';
 import '../../features/members/presentation/screens/member_list_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
-import '../widgets/placeholder_tab_screen.dart';
 
 /// Item representing a tab in the [MainShell].
 class ShellTabItem {

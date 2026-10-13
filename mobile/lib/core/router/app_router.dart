@@ -40,6 +40,13 @@ class AppRouter {
           return homeRoute;
         }
 
+        // Prevent members from accessing librarian-only book modification routes
+        final loc = state.matchedLocation;
+        final isLibrarianOnlyRoute = loc == newBookRoute || loc.endsWith('/edit');
+        if (isLibrarianOnlyRoute && authController.user?.isLibrarian != true) {
+          return homeRoute;
+        }
+
         return null;
       },
       routes: [

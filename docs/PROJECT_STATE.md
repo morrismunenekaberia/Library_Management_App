@@ -1,5 +1,5 @@
 # Project State (read this first)
-Last updated: 2026-10-13 by build Home tab for both roles
+Last updated: 2026-10-13 by finish member experience
 
 ## Stack and run commands
 - Backend: Node.js (Express, pg, bcrypt, jsonwebtoken). Run: `cd backend && npm start` (port 3000). Dev: `npm run dev`.
@@ -20,11 +20,11 @@ Last updated: 2026-10-13 by build Home tab for both roles
 ## Feature status
 | Feature | Backend | Mobile | Notes |
 |---------|---------|--------|-------|
-| auth | Complete | Complete | Login, logout, session restore, auto-logout on 401. No registration. |
-| books | Complete | Complete | Restyled with M3 widgets (AppCard, SearchField, EmptyState, ErrorState, LoadingIndicator, RefreshIndicator); librarian controls protected. |
-| members | Complete | Complete | MemberListScreen, MemberFormScreen (createUser switch & one-time temp password dialog), delete confirmation, 409 error handling. |
-| loans | Complete | Complete | LoanListScreen (Active/Overdue/Returned ChoiceChips, Return action with confirmation, overdue highlight, friendly 409) & IssueLoanScreen (FAB, searchable member/book pickers, 14-day due date). |
-| dashboard | Complete | Complete | GET /api/stats (clean architecture). Librarian: 4 StatCards & recent loans; Member: greeting & active/overdue counts; auto-refreshed on issue/return. |
+| auth | Complete | Complete | Login, logout, session restore, auto-logout on 401. Registration non-existent (login-only verified). |
+| books | Complete | Complete | Catalogue browsing for members (read-only); add/edit/delete protected and guarded by role. |
+| members | Complete | Complete | Librarian-only tab and screens; MemberListScreen, MemberFormScreen, delete confirmation. |
+| loans | Complete | Complete | Librarian: issue/return & full list. Member: My Loans tab (read-only, own loans, no issue/return buttons). |
+| dashboard | Complete | Complete | GET /api/stats (clean architecture). Librarian: 4 StatCards & recent loans; Member: greeting & active/overdue counts. |
 | settings | Complete | Complete | SettingsScreen shows user profile, role, debug API base URL, and logout with confirmation. |
 
 ## Key files per feature
@@ -50,4 +50,4 @@ Last updated: 2026-10-13 by build Home tab for both roles
 - Known: Cloudflared quick tunnel URLs change when restarted without a named tunnel configuration.
 
 ## Next task
-- Member role screens: My Loans tab screen.
+- End-to-end integration testing and release build verification.
