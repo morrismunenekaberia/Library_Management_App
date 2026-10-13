@@ -5,6 +5,8 @@ import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../domain/entities/book.dart';
 import '../controllers/books_controller.dart';
 
+import '../../../../core/widgets/widgets.dart';
+
 /// Screen displaying the catalogue of books with search, pull-to-refresh,
 /// and role-restricted actions.
 class BookListScreen extends StatefulWidget {
@@ -14,7 +16,11 @@ class BookListScreen extends StatefulWidget {
   State<BookListScreen> createState() => _BookListScreenState();
 }
 
-class _BookListScreenState extends State<BookListScreen> {
+class _BookListScreenState extends State<BookListScreen>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -45,6 +51,7 @@ class _BookListScreenState extends State<BookListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final theme = Theme.of(context);
     final authController = context.watch<AuthController>();
     final isLibrarian = authController.user?.isLibrarian ?? false;
@@ -65,28 +72,14 @@ class _BookListScreenState extends State<BookListScreen> {
           : null,
       body: Column(
         children: [
-          // Search Bar
+          // Search Bar using SearchField
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            child: TextField(
+            child: SearchField(
               controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search by title, author, or ISBN...',
-                prefixIcon: const Icon(Icons.search_rounded),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear_rounded),
-                        onPressed: _onClearSearch,
-                        tooltip: 'Clear search',
-                      )
-                    : null,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-              ),
-              textInputAction: TextInputAction.search,
+              hintText: 'Search by title, author, or ISBN...',
               onSubmitted: _onSearchSubmitted,
+              onClear: _onClearSearch,
               onChanged: (value) {
                 setState(() {});
                 if (value.isEmpty) {
@@ -111,46 +104,24 @@ class _BookListScreenState extends State<BookListScreen> {
     ThemeData theme,
   ) {
     if (controller.isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const LoadingIndicator(message: 'Loading books...');
     }
 
     if (controller.errorMessage != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.error_outline_rounded,
-                size: 56,
-                color: theme.colorScheme.error,
+      return RefreshIndicator(
+        onRefresh: () => controller.fetchBooks(isRefresh: true),
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.5,
+              child: ErrorState(
+                title: 'Failed to load books',
+                message: controller.errorMessage!,
+                onRetry: () => controller.fetchBooks(),
               ),
-              const SizedBox(height: 16),
-              Text(
-                'Failed to load books',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                controller.errorMessage!,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 20),
-              FilledButton.icon(
-                onPressed: () => controller.fetchBooks(),
-                icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Retry'),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       );
     }
@@ -163,38 +134,15 @@ class _BookListScreenState extends State<BookListScreen> {
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
             SizedBox(
-              height: MediaQuery.of(context).size.height * 0.45,
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        isSearching
-                            ? Icons.search_off_rounded
-                            : Icons.menu_book_outlined,
-                        size: 64,
-                        color: theme.colorScheme.outline,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        isSearching ? 'No matching books' : 'No books available',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        isSearching
-                            ? 'No books found matching "${controller.searchQuery}".'
-                            : 'The library catalogue is currently empty.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: theme.colorScheme.outline),
-                      ),
-                    ],
-                  ),
-                ),
+              height: MediaQuery.of(context).size.height * 0.5,
+              child: EmptyState(
+                icon: isSearching
+                    ? Icons.search_off_rounded
+                    : Icons.menu_book_outlined,
+                title: isSearching ? 'No matching books' : 'No books available',
+                message: isSearching
+                    ? 'No books found matching "${controller.searchQuery}".'
+                    : 'The library catalogue is currently empty.',
               ),
             ),
           ],
@@ -227,36 +175,35 @@ class _BookCard extends StatelessWidget {
     final theme = Theme.of(context);
     final isAvailable = book.isAvailable;
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () {
-          context.push('/books/${book.id}', extra: book);
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Text(
-                      book.title,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+    return AppCard(
+      padding: EdgeInsets.zero,
+      onTap: () {
+        context.push('/books/${book.id}', extra: book);
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    book.title,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  _AvailabilityBadge(
-                    available: book.availableCopies,
-                    total: book.totalCopies,
-                    isAvailable: isAvailable,
-                  ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 8),
+                _AvailabilityBadge(
+                  available: book.availableCopies,
+                  total: book.totalCopies,
+                  isAvailable: isAvailable,
+                ),
+              ],
+            ),
               const SizedBox(height: 6),
               Text(
                 'By ${book.author}',
@@ -300,7 +247,6 @@ class _BookCard extends StatelessWidget {
             ],
           ),
         ),
-      ),
     );
   }
 }

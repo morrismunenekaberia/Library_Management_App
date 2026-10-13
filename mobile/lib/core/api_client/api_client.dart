@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -14,6 +15,8 @@ import '../token_storage/token_storage.dart';
 /// - Decodes JSON responses.
 /// - Maps HTTP status codes and socket errors to typed [AppException]s.
 class ApiClient {
+  static const Duration defaultTimeout = Duration(seconds: 10);
+
   final http.Client _client;
   final TokenStorage _tokenStorage;
   final String _baseUrl;
@@ -118,9 +121,13 @@ class ApiClient {
     try {
       final uri = _resolveUri(path, queryParams);
       final resolvedHeaders = await _buildHeaders(headers);
-      final response = await _client.get(uri, headers: resolvedHeaders);
+      final response = await _client
+          .get(uri, headers: resolvedHeaders)
+          .timeout(defaultTimeout);
       return _handleResponse(response);
     } on SocketException catch (_) {
+      throw const NetworkException();
+    } on TimeoutException catch (_) {
       throw const NetworkException();
     } on http.ClientException catch (_) {
       throw const NetworkException();
@@ -141,13 +148,13 @@ class ApiClient {
       final uri = _resolveUri(path);
       final resolvedHeaders = await _buildHeaders(headers);
       final encodedBody = body != null ? jsonEncode(body) : null;
-      final response = await _client.post(
-        uri,
-        headers: resolvedHeaders,
-        body: encodedBody,
-      );
+      final response = await _client
+          .post(uri, headers: resolvedHeaders, body: encodedBody)
+          .timeout(defaultTimeout);
       return _handleResponse(response);
     } on SocketException catch (_) {
+      throw const NetworkException();
+    } on TimeoutException catch (_) {
       throw const NetworkException();
     } on http.ClientException catch (_) {
       throw const NetworkException();
@@ -168,13 +175,13 @@ class ApiClient {
       final uri = _resolveUri(path);
       final resolvedHeaders = await _buildHeaders(headers);
       final encodedBody = body != null ? jsonEncode(body) : null;
-      final response = await _client.put(
-        uri,
-        headers: resolvedHeaders,
-        body: encodedBody,
-      );
+      final response = await _client
+          .put(uri, headers: resolvedHeaders, body: encodedBody)
+          .timeout(defaultTimeout);
       return _handleResponse(response);
     } on SocketException catch (_) {
+      throw const NetworkException();
+    } on TimeoutException catch (_) {
       throw const NetworkException();
     } on http.ClientException catch (_) {
       throw const NetworkException();
@@ -190,9 +197,13 @@ class ApiClient {
     try {
       final uri = _resolveUri(path);
       final resolvedHeaders = await _buildHeaders(headers);
-      final response = await _client.delete(uri, headers: resolvedHeaders);
+      final response = await _client
+          .delete(uri, headers: resolvedHeaders)
+          .timeout(defaultTimeout);
       return _handleResponse(response);
     } on SocketException catch (_) {
+      throw const NetworkException();
+    } on TimeoutException catch (_) {
       throw const NetworkException();
     } on http.ClientException catch (_) {
       throw const NetworkException();

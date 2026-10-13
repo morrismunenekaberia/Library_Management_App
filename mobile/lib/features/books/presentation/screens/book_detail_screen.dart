@@ -5,6 +5,8 @@ import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../domain/entities/book.dart';
 import '../controllers/books_controller.dart';
 
+import '../../../../core/widgets/widgets.dart';
+
 /// Screen displaying detailed view of a selected book with librarian edit/delete options.
 class BookDetailScreen extends StatefulWidget {
   final int bookId;
@@ -117,73 +119,23 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
         ],
       ),
       body: booksController.isDetailLoading && book == null
-          ? const Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 16),
-                  Text('Loading book details...'),
-                ],
-              ),
-            )
+          ? const LoadingIndicator(message: 'Loading book details...')
           : book == null
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          booksController.errorMessage != null
-                              ? Icons.error_outline_rounded
-                              : Icons.search_off_rounded,
-                          size: 56,
-                          color: booksController.errorMessage != null
-                              ? theme.colorScheme.error
-                              : theme.colorScheme.outline,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          booksController.errorMessage != null
-                              ? 'Failed to load book'
-                              : 'Book not found',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          booksController.errorMessage ??
-                              'The requested book could not be found.',
-                          textAlign: TextAlign.center,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        if (booksController.errorMessage != null) ...[
-                          FilledButton.icon(
-                            onPressed: () => context
-                                .read<BooksController>()
-                                .fetchBookDetails(widget.bookId),
-                            icon: const Icon(Icons.refresh_rounded),
-                            label: const Text('Retry'),
-                          ),
-                          const SizedBox(height: 8),
-                          OutlinedButton(
-                            onPressed: () => context.pop(),
-                            child: const Text('Back to Catalogue'),
-                          ),
-                        ] else
-                          FilledButton(
-                            onPressed: () => context.pop(),
-                            child: const Text('Back to Catalogue'),
-                          ),
-                      ],
-                    ),
-                  ),
-                )
+              ? (booksController.errorMessage != null
+                  ? ErrorState(
+                      title: 'Failed to load book',
+                      message: booksController.errorMessage!,
+                      onRetry: () => context
+                          .read<BooksController>()
+                          .fetchBookDetails(widget.bookId),
+                    )
+                  : EmptyState(
+                      icon: Icons.search_off_rounded,
+                      title: 'Book not found',
+                      message: 'The requested book could not be found.',
+                      actionLabel: 'Back to Catalogue',
+                      onAction: () => context.pop(),
+                    ))
               : SingleChildScrollView(
                   padding: const EdgeInsets.all(20.0),
                   child: Center(
@@ -192,26 +144,25 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(20.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          book.title,
-                                          style: theme.textTheme.headlineSmall
-                                              ?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                          AppCard(
+                            padding: const EdgeInsets.all(20.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        book.title,
+                                        style: theme.textTheme.headlineSmall
+                                            ?.copyWith(
+                                          fontWeight: FontWeight.bold,
                                         ),
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
+                                ),
                                   const SizedBox(height: 8),
                                   Text(
                                     'By ${book.author}',
@@ -251,7 +202,6 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                                 ],
                               ),
                             ),
-                          ),
                           const SizedBox(height: 24),
                           // Librarian quick actions at bottom
                           if (isLibrarian) ...[

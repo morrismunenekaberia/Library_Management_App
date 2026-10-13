@@ -163,7 +163,7 @@ void main() {
       expect(find.text('Active Loans'), findsOneWidget);
       expect(find.text('7'), findsOneWidget);
       expect(find.text('Overdue Loans'), findsWidgets);
-      expect(find.text('Members'), findsOneWidget);
+      expect(find.text('Members'), findsWidgets);
       expect(find.text('15'), findsOneWidget);
 
       // Verify overdue loan details

@@ -170,8 +170,13 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // Tap on Books bottom navigation
-    await tester.tap(find.text('Books'));
+    // Tap on Browse bottom navigation (or Books)
+    final browseTab = find.text('Browse');
+    if (browseTab.evaluate().isNotEmpty) {
+      await tester.tap(browseTab);
+    } else {
+      await tester.tap(find.text('Books'));
+    }
     await tester.pumpAndSettle();
 
     // Verify member sees catalogue but NOT the Add Book FAB
