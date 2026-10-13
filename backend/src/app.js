@@ -22,6 +22,7 @@ const DeleteMember = require('./usecases/members/delete-member.usecase');
 const IssueLoan = require('./usecases/loans/issue-loan.usecase');
 const ReturnLoan = require('./usecases/loans/return-loan.usecase');
 const ListLoans = require('./usecases/loans/list-loans.usecase');
+const GetStats = require('./usecases/stats/get-stats.usecase');
 
 // --- Infrastructure (concrete implementations) ---
 const HealthRepositoryImpl = require('./infrastructure/repositories/health.repository.impl');
@@ -29,6 +30,7 @@ const PostgresUserRepository = require('./infrastructure/repositories/user.repos
 const PostgresBookRepository = require('./infrastructure/repositories/book.repository.impl');
 const PostgresMemberRepository = require('./infrastructure/repositories/member.repository.impl');
 const PostgresLoanRepository = require('./infrastructure/repositories/loan.repository.impl');
+const PostgresStatsRepository = require('./infrastructure/repositories/stats.repository.impl');
 
 // --- HTTP layer ---
 const HealthController = require('./interfaces/http/controllers/health.controller');
@@ -36,11 +38,13 @@ const AuthController = require('./interfaces/http/controllers/auth.controller');
 const BookController = require('./interfaces/http/controllers/book.controller');
 const MemberController = require('./interfaces/http/controllers/member.controller');
 const LoanController = require('./interfaces/http/controllers/loan.controller');
+const StatsController = require('./interfaces/http/controllers/stats.controller');
 const healthRoutes = require('./interfaces/http/routes/health.routes');
 const authRoutes = require('./interfaces/http/routes/auth.routes');
 const bookRoutes = require('./interfaces/http/routes/book.routes');
 const memberRoutes = require('./interfaces/http/routes/member.routes');
 const loanRoutes = require('./interfaces/http/routes/loan.routes');
+const statsRoutes = require('./interfaces/http/routes/stats.routes');
 const errorHandler = require('./interfaces/http/middleware/errorHandler');
 
 // ============================================================
@@ -96,6 +100,10 @@ const loanController = new LoanController({
   listLoans: listLoansUseCase,
 });
 
+const statsRepository = new PostgresStatsRepository(pool);
+const getStatsUseCase = new GetStats(statsRepository);
+const statsController = new StatsController(getStatsUseCase);
+
 // ============================================================
 // Express application
 // ============================================================
@@ -132,6 +140,7 @@ app.use('/api/auth', authRoutes(authController));
 app.use('/api/books', bookRoutes(bookController));
 app.use('/api/members', memberRoutes(memberController));
 app.use('/api/loans', loanRoutes(loanController));
+app.use('/api/stats', statsRoutes(statsController));
 
 // --- Centralized error handler (must be registered last) ---
 app.use(errorHandler);

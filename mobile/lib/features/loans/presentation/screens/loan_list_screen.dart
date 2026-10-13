@@ -104,16 +104,18 @@ class _LoanListScreenState extends State<LoanListScreen>
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
-          final issued = await Navigator.of(context).push<bool>(
+          final navigator = Navigator.of(context);
+          final controller = context.read<LoansController>();
+          final issued = await navigator.push<bool>(
             MaterialPageRoute(
               builder: (_) => const IssueLoanScreen(),
             ),
           );
-          if (issued == true && mounted) {
-            context.read<LoansController>().fetchLoans(
-                  status: _selectedFilter,
-                  isRefresh: true,
-                );
+          if (issued == true) {
+            controller.fetchLoans(
+              status: _selectedFilter,
+              isRefresh: true,
+            );
           }
         },
         icon: const Icon(Icons.add_task_rounded),

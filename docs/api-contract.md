@@ -33,3 +33,7 @@ Errors shape: `{"error": "<message>"}`
 - `POST /api/loans` (Auth: librarian) (Body: `bookId`, `memberId`, `dueDate`?) -> `201 Created` Loan object (Rules: member max 3 loans, member active, book available copies > 0)
 - `POST /api/loans/:id/return` (Auth: librarian) -> `200 OK` Loan object (increments book availableCopies)
 
+### Stats
+- `GET /api/stats` (Auth: librarian) -> `200 OK` `{"totalBooks": int, "activeMembers": int, "activeLoans": int, "overdueLoans": int, "recentLoans": [{"id": int, "bookId": int, "memberId": int, "issuedAt": ISOString, "dueDate": ISOString, "returnedAt": ISOString|null, "bookTitle": string|null, "memberName": string|null}]}`
+
+
