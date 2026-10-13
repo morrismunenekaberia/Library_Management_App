@@ -351,7 +351,7 @@ class _MemberFormScreenState extends State<MemberFormScreen> {
 
                   // Status Dropdown
                   DropdownButtonFormField<String>(
-                    value: _status,
+                    initialValue: _status,
                     decoration: const InputDecoration(
                       labelText: 'Member Status *',
                       prefixIcon: Icon(Icons.toggle_on_outlined),

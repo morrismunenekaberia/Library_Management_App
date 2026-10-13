@@ -28,6 +28,16 @@ import 'features/dashboard/domain/entities/dashboard_stats.dart';
 import 'features/dashboard/domain/repositories/dashboard_repository.dart';
 import 'features/dashboard/domain/usecases/get_librarian_dashboard.dart';
 import 'features/dashboard/presentation/controllers/dashboard_controller.dart';
+import 'features/members/data/datasources/members_remote_data_source.dart';
+import 'features/members/data/repositories/member_repository_impl.dart';
+import 'features/members/domain/entities/member.dart';
+import 'features/members/domain/repositories/member_repository.dart';
+import 'features/members/domain/usecases/create_member.dart';
+import 'features/members/domain/usecases/delete_member.dart';
+import 'features/members/domain/usecases/get_member.dart';
+import 'features/members/domain/usecases/list_members.dart';
+import 'features/members/domain/usecases/update_member.dart';
+import 'features/members/presentation/controllers/members_controller.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -74,6 +84,23 @@ void main() {
     deleteBookUseCase: deleteBook,
   );
 
+  // Members feature dependency wiring
+  final membersRemoteDataSource = MembersRemoteDataSourceImpl(apiClient);
+  final memberRepository = MemberRepositoryImpl(membersRemoteDataSource);
+  final listMembers = ListMembers(memberRepository);
+  final getMember = GetMember(memberRepository);
+  final createMember = CreateMember(memberRepository);
+  final updateMember = UpdateMember(memberRepository);
+  final deleteMember = DeleteMember(memberRepository);
+
+  final membersController = MembersController(
+    listMembersUseCase: listMembers,
+    getMemberUseCase: getMember,
+    createMemberUseCase: createMember,
+    updateMemberUseCase: updateMember,
+    deleteMemberUseCase: deleteMember,
+  );
+
   // Dashboard feature dependency wiring
   final dashboardRemoteDataSource = DashboardRemoteDataSourceImpl(apiClient);
   final dashboardRepository = DashboardRepositoryImpl(dashboardRemoteDataSource);
@@ -92,14 +119,17 @@ void main() {
         Provider<ApiClient>.value(value: apiClient),
         Provider<AuthRepository>.value(value: authRepository),
         Provider<BookRepository>.value(value: bookRepository),
+        Provider<MemberRepository>.value(value: memberRepository),
         Provider<DashboardRepository>.value(value: dashboardRepository),
         ChangeNotifierProvider<AuthController>.value(value: authController),
         ChangeNotifierProvider<BooksController>.value(value: booksController),
+        ChangeNotifierProvider<MembersController>.value(value: membersController),
         ChangeNotifierProvider<DashboardController>.value(value: dashboardController),
       ],
       child: LibraryApp(
         authController: authController,
         booksController: booksController,
+        membersController: membersController,
         dashboardController: dashboardController,
       ),
     ),
@@ -109,12 +139,14 @@ void main() {
 class LibraryApp extends StatefulWidget {
   final AuthController authController;
   final BooksController? booksController;
+  final MembersController? membersController;
   final DashboardController? dashboardController;
 
   const LibraryApp({
     super.key,
     required this.authController,
     this.booksController,
+    this.membersController,
     this.dashboardController,
   });
 
@@ -125,6 +157,7 @@ class LibraryApp extends StatefulWidget {
 class _LibraryAppState extends State<LibraryApp> {
   late final _router = AppRouter.createRouter(widget.authController);
   late final BooksController _effectiveBooksController;
+  late final MembersController _effectiveMembersController;
   late final DashboardController _effectiveDashboardController;
 
   @override
@@ -137,6 +170,15 @@ class _LibraryAppState extends State<LibraryApp> {
           createBookUseCase: const CreateBook(_NoopBookRepository()),
           updateBookUseCase: const UpdateBook(_NoopBookRepository()),
           deleteBookUseCase: const DeleteBook(_NoopBookRepository()),
+        );
+
+    _effectiveMembersController = widget.membersController ??
+        MembersController(
+          listMembersUseCase: const ListMembers(_NoopMemberRepository()),
+          getMemberUseCase: const GetMember(_NoopMemberRepository()),
+          createMemberUseCase: const CreateMember(_NoopMemberRepository()),
+          updateMemberUseCase: const UpdateMember(_NoopMemberRepository()),
+          deleteMemberUseCase: const DeleteMember(_NoopMemberRepository()),
         );
 
     _effectiveDashboardController = widget.dashboardController ??
@@ -154,6 +196,9 @@ class _LibraryAppState extends State<LibraryApp> {
         ),
         ChangeNotifierProvider<BooksController>.value(
           value: _effectiveBooksController,
+        ),
+        ChangeNotifierProvider<MembersController>.value(
+          value: _effectiveMembersController,
         ),
         ChangeNotifierProvider<DashboardController>.value(
           value: _effectiveDashboardController,
@@ -243,3 +288,65 @@ class _NoopBookRepository implements BookRepository {
   @override
   Future<void> deleteBook(int id) async {}
 }
+
+/// Fallback repository used only if [LibraryApp] is constructed without [MembersController] in tests.
+class _NoopMemberRepository implements MemberRepository {
+  const _NoopMemberRepository();
+
+  @override
+  Future<List<Member>> listMembers({String? search}) async => const [];
+
+  @override
+  Future<Member> getMember(int id) async => Member(
+        id: id,
+        fullName: 'Unknown',
+        admissionNumber: '000',
+        joinedAt: DateTime(2026, 1, 1),
+        status: 'active',
+      );
+
+  @override
+  Future<CreateMemberResult> createMember({
+    required String fullName,
+    required String admissionNumber,
+    String? phone,
+    String? email,
+    String? status,
+    bool createUser = false,
+  }) async =>
+      CreateMemberResult(
+        member: Member(
+          id: 1,
+          fullName: fullName,
+          admissionNumber: admissionNumber,
+          phone: phone,
+          email: email,
+          joinedAt: DateTime.now(),
+          status: status ?? 'active',
+        ),
+        temporaryPassword: createUser ? 'Tmp#12345678' : null,
+      );
+
+  @override
+  Future<Member> updateMember(
+    int id, {
+    String? fullName,
+    String? admissionNumber,
+    String? phone,
+    String? email,
+    String? status,
+  }) async =>
+      Member(
+        id: id,
+        fullName: fullName ?? 'Unknown',
+        admissionNumber: admissionNumber ?? '000',
+        phone: phone,
+        email: email,
+        joinedAt: DateTime(2026, 1, 1),
+        status: status ?? 'active',
+      );
+
+  @override
+  Future<void> deleteMember(int id) async {}
+}
+
