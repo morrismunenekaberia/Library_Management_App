@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../features/splash/presentation/splash_screen.dart';
 import '../../features/auth/presentation/controllers/auth_controller.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/books/domain/entities/book.dart';
@@ -12,10 +13,14 @@ import '../widgets/main_shell.dart';
 class AppRouter {
   AppRouter._();
 
+  static const String splashRoute = '/splash';
   static const String homeRoute = '/';
   static const String booksRoute = '/books';
   static const String newBookRoute = '/books/new';
   static const String loginRoute = '/login';
+
+  /// Tracks whether the cold-start splash screen has already been shown in this process.
+  static bool splashSeen = false;
 
   static final GlobalKey<NavigatorState> rootNavigatorKey =
       GlobalKey<NavigatorState>();
@@ -24,24 +29,31 @@ class AppRouter {
   static GoRouter createRouter(AuthController authController) {
     return GoRouter(
       navigatorKey: rootNavigatorKey,
-      initialLocation: homeRoute,
+      initialLocation: splashSeen ? homeRoute : splashRoute,
       refreshListenable: authController,
       redirect: (context, state) {
+        final loc = state.matchedLocation;
+        final isSplash = loc == splashRoute;
+
+        // While on splash screen, do NOT redirect early — wait for splash to finish.
+        if (isSplash && !splashSeen) {
+          return null;
+        }
+
         final isAuthenticated = authController.isAuthenticated;
-        final isLoggingIn = state.matchedLocation == loginRoute;
+        final isLoggingIn = loc == loginRoute;
 
         // If user is not authenticated, redirect to login
         if (!isAuthenticated) {
           return isLoggingIn ? null : loginRoute;
         }
 
-        // If user is authenticated and attempts to visit login screen, redirect to home
-        if (isLoggingIn) {
+        // If user is authenticated and attempts to visit login or splash screen, redirect to home
+        if (isLoggingIn || isSplash) {
           return homeRoute;
         }
 
         // Prevent members from accessing librarian-only book modification routes
-        final loc = state.matchedLocation;
         final isLibrarianOnlyRoute = loc == newBookRoute || loc.endsWith('/edit');
         if (isLibrarianOnlyRoute && authController.user?.isLibrarian != true) {
           return homeRoute;
@@ -50,17 +62,42 @@ class AppRouter {
         return null;
       },
       routes: [
+        // Cold start video splash route
+        GoRoute(
+          path: splashRoute,
+          parentNavigatorKey: rootNavigatorKey,
+          pageBuilder: (context, state) => CustomTransitionPage<void>(
+            key: state.pageKey,
+            child: const SplashScreen(),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return FadeTransition(opacity: animation, child: child);
+            },
+          ),
+        ),
+
         // Authentication route
         GoRoute(
           path: loginRoute,
           parentNavigatorKey: rootNavigatorKey,
-          builder: (context, state) => const LoginScreen(),
+          pageBuilder: (context, state) => CustomTransitionPage<void>(
+            key: state.pageKey,
+            child: const LoginScreen(),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return FadeTransition(opacity: animation, child: child);
+            },
+          ),
         ),
 
         // Authenticated Main Shell with Material 3 NavigationBar and PageView
         GoRoute(
           path: homeRoute,
-          builder: (context, state) => const MainShell(),
+          pageBuilder: (context, state) => CustomTransitionPage<void>(
+            key: state.pageKey,
+            child: const MainShell(),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return FadeTransition(opacity: animation, child: child);
+            },
+          ),
         ),
         // Keep books route backward-compatible if pushed directly or linked
         GoRoute(
