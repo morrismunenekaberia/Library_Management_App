@@ -7,5 +7,4 @@
 2026-10-13 | add Issue loan form | mobile/lib/features/loans/presentation/screens/issue_loan_screen.dart, mobile/lib/features/loans/presentation/screens/loan_list_screen.dart | works
 2026-10-13 | build Home tab for both roles | backend/src/interfaces/http/routes/stats.routes.js, mobile/lib/features/auth/presentation/screens/home_screen.dart, mobile/lib/features/dashboard/data/datasources/dashboard_remote_data_source.dart | works
 2026-10-13 | finish member experience | mobile/lib/core/widgets/main_shell.dart, mobile/lib/features/loans/presentation/screens/loan_list_screen.dart, mobile/lib/core/router/app_router.dart | works
-
-
+2026-10-13 | add video splash screen shown on cold start | mobile/lib/features/splash/presentation/splash_screen.dart, mobile/lib/core/router/app_router.dart, mobile/lib/main.dart, mobile/pubspec.yaml | works

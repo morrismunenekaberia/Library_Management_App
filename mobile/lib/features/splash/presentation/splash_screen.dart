@@ -40,20 +40,22 @@ class _SplashScreenState extends State<SplashScreen> {
     // Cold start splash has been viewed for this process lifetime
     AppRouter.splashSeen = true;
 
-    // Use passed future or fetch from AuthController
-    final authController = context.read<AuthController>();
-    _restoreFuture = widget.sessionRestoreFuture ?? authController.restoreSession();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final authController = context.read<AuthController>();
+      _restoreFuture = widget.sessionRestoreFuture ?? authController.restoreSession();
 
-    _restoreFuture.then((_) {
-      if (mounted) {
-        _isSessionRestored = true;
-        _checkAndNavigate();
-      }
-    }).catchError((_) {
-      if (mounted) {
-        _isSessionRestored = true;
-        _checkAndNavigate();
-      }
+      _restoreFuture.then((_) {
+        if (mounted) {
+          _isSessionRestored = true;
+          _checkAndNavigate();
+        }
+      }).catchError((_) {
+        if (mounted) {
+          _isSessionRestored = true;
+          _checkAndNavigate();
+        }
+      });
     });
 
     _initVideo();

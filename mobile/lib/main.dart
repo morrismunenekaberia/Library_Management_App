@@ -130,9 +130,6 @@ void main() {
     getLibrarianDashboardUseCase: getLibrarianDashboard,
   );
 
-  // Restore session from persisted credentials on app startup
-  authController.restoreSession();
-
   runApp(
     MultiProvider(
       providers: [
