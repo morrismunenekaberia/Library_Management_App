@@ -67,3 +67,4 @@ class PostgresStatsRepository extends StatsRepository {
 }
 
 module.exports = PostgresStatsRepository;
+

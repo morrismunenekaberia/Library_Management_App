@@ -5,4 +5,6 @@
 2026-10-13 | build Members feature vertical slice | mobile/lib/features/members/presentation/screens/member_list_screen.dart, mobile/lib/features/members/presentation/screens/member_form_screen.dart, mobile/lib/core/widgets/main_shell.dart, mobile/lib/main.dart, mobile/test/members_test.dart | works
 2026-10-13 | build Loans list and return action vertical slice | mobile/lib/features/loans/presentation/screens/loan_list_screen.dart, mobile/lib/core/widgets/main_shell.dart, mobile/lib/main.dart, mobile/test/loans_test.dart | works
 2026-10-13 | add Issue loan form | mobile/lib/features/loans/presentation/screens/issue_loan_screen.dart, mobile/lib/features/loans/presentation/screens/loan_list_screen.dart | works
+2026-10-13 | build Home tab for both roles | backend/src/interfaces/http/routes/stats.routes.js, mobile/lib/features/auth/presentation/screens/home_screen.dart, mobile/lib/features/dashboard/data/datasources/dashboard_remote_data_source.dart | works
+
 

@@ -19,9 +19,11 @@ class LoanModel extends Loan {
       id: (json['id'] as num).toInt(),
       bookId: ((json['bookId'] ?? json['book_id']) as num).toInt(),
       memberId: ((json['memberId'] ?? json['member_id']) as num).toInt(),
-      issuedAt: DateTime.parse(
-        (json['issuedAt'] ?? json['issued_at']) as String,
-      ),
+      issuedAt: (json['issuedAt'] ?? json['issued_at']) != null
+          ? DateTime.parse(
+              (json['issuedAt'] ?? json['issued_at']) as String,
+            )
+          : DateTime.now(),
       dueDate: DateTime.parse(
         (json['dueDate'] ?? json['due_date']) as String,
       ),

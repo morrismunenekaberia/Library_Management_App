@@ -18,3 +18,4 @@ class GetStats {
 }
 
 module.exports = GetStats;
+

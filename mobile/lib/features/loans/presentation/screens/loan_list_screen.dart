@@ -2,14 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/widgets/widgets.dart';
+import '../../../auth/presentation/controllers/auth_controller.dart';
+import '../../../dashboard/presentation/controllers/dashboard_controller.dart';
 import '../../domain/entities/loan.dart';
 import '../controllers/loans_controller.dart';
 import 'issue_loan_screen.dart';
 
 /// Screen displaying the list of loans with ChoiceChips filter (Active, Overdue, Returned),
-/// pull-to-refresh, overdue highlights, and book return action.
+/// pull-to-refresh, overdue highlights, and optional book return / issue actions.
 class LoanListScreen extends StatefulWidget {
-  const LoanListScreen({super.key});
+  final bool? isReadOnly;
+  final String? title;
+
+  const LoanListScreen({
+    super.key,
+    this.isReadOnly,
+    this.title,
+  });
 
   @override
   State<LoanListScreen> createState() => _LoanListScreenState();
@@ -80,6 +89,12 @@ class _LoanListScreenState extends State<LoanListScreen>
             status: _selectedFilter,
             isRefresh: true,
           );
+          // Refresh dashboard stats if mounted
+          if (mounted) {
+            try {
+              context.read<DashboardController>().fetchDashboard(isRefresh: true);
+            } catch (_) {}
+          }
         } else if (controller.errorMessage != null) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -96,31 +111,37 @@ class _LoanListScreenState extends State<LoanListScreen>
   Widget build(BuildContext context) {
     super.build(context);
     final theme = Theme.of(context);
+    final authController = context.watch<AuthController>();
     final loansController = context.watch<LoansController>();
+
+    final isLibrarian = authController.user?.isLibrarian ?? false;
+    final isReadOnly = widget.isReadOnly ?? !isLibrarian;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Loans'),
+        title: Text(widget.title ?? (isReadOnly ? 'My Loans' : 'Loans')),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          final navigator = Navigator.of(context);
-          final controller = context.read<LoansController>();
-          final issued = await navigator.push<bool>(
-            MaterialPageRoute(
-              builder: (_) => const IssueLoanScreen(),
-            ),
-          );
-          if (issued == true) {
-            controller.fetchLoans(
-              status: _selectedFilter,
-              isRefresh: true,
-            );
-          }
-        },
-        icon: const Icon(Icons.add_task_rounded),
-        label: const Text('Issue Loan'),
-      ),
+      floatingActionButton: (!isReadOnly && isLibrarian)
+          ? FloatingActionButton.extended(
+              onPressed: () async {
+                final navigator = Navigator.of(context);
+                final controller = context.read<LoansController>();
+                final issued = await navigator.push<bool>(
+                  MaterialPageRoute(
+                    builder: (_) => const IssueLoanScreen(),
+                  ),
+                );
+                if (issued == true) {
+                  controller.fetchLoans(
+                    status: _selectedFilter,
+                    isRefresh: true,
+                  );
+                }
+              },
+              icon: const Icon(Icons.add_task_rounded),
+              label: const Text('Issue Loan'),
+            )
+          : null,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -220,6 +241,7 @@ class _LoanListScreenState extends State<LoanListScreen>
           final loan = controller.loans[index];
           return _LoanCard(
             loan: loan,
+            isReadOnly: isReadOnly,
             onReturn: () => _confirmReturnLoan(loan),
             isReturning: controller.isSaving,
           );
@@ -231,11 +253,13 @@ class _LoanListScreenState extends State<LoanListScreen>
 
 class _LoanCard extends StatelessWidget {
   final Loan loan;
+  final bool isReadOnly;
   final VoidCallback onReturn;
   final bool isReturning;
 
   const _LoanCard({
     required this.loan,
+    this.isReadOnly = false,
     required this.onReturn,
     required this.isReturning,
   });
@@ -381,8 +405,8 @@ class _LoanCard extends StatelessWidget {
               ),
             ],
 
-            // Return book button for active or overdue loans
-            if (!isReturned) ...[
+            // Return book button for active or overdue loans (librarian only / not read-only)
+            if (!isReturned && !isReadOnly) ...[
               const Divider(height: 20),
               Align(
                 alignment: Alignment.centerRight,

@@ -18,3 +18,4 @@ class StatsRepository {
 }
 
 module.exports = StatsRepository;
+

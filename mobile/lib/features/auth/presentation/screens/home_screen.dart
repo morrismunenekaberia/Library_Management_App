@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import 'package:library_mobile/core/widgets/stat_card.dart';
+import 'package:library_mobile/features/dashboard/domain/entities/dashboard_stats.dart';
 import 'package:library_mobile/features/dashboard/presentation/controllers/dashboard_controller.dart';
-import 'package:library_mobile/features/dashboard/presentation/widgets/dashboard_metric_card.dart';
-import 'package:library_mobile/features/dashboard/presentation/widgets/overdue_loan_tile.dart';
+import 'package:library_mobile/features/loans/domain/entities/loan.dart';
+import 'package:library_mobile/features/loans/presentation/controllers/loans_controller.dart';
 import '../controllers/auth_controller.dart';
 
 /// Home screen displaying the Librarian Dashboard or Member Overview.
@@ -27,6 +28,8 @@ class _HomeScreenState extends State<HomeScreen>
       final authController = context.read<AuthController>();
       if (authController.user?.isLibrarian == true) {
         context.read<DashboardController>().fetchDashboard();
+      } else if (authController.user?.isMember == true) {
+        context.read<LoansController>().fetchLoans();
       }
     });
   }
@@ -37,6 +40,7 @@ class _HomeScreenState extends State<HomeScreen>
     final theme = Theme.of(context);
     final authController = context.watch<AuthController>();
     final dashboardController = context.watch<DashboardController>();
+    final loansController = context.watch<LoansController>();
     final user = authController.user;
 
     final roleLabel = user?.isLibrarian == true
@@ -47,14 +51,17 @@ class _HomeScreenState extends State<HomeScreen>
       appBar: AppBar(
         title: const Text('Library Manager'),
         actions: [
-          if (user?.isLibrarian == true)
-            IconButton(
-              tooltip: 'Refresh Dashboard',
-              icon: const Icon(Icons.refresh_rounded),
-              onPressed: () {
-                context.read<DashboardController>().fetchDashboard();
-              },
-            ),
+          IconButton(
+            tooltip: 'Refresh',
+            icon: const Icon(Icons.refresh_rounded),
+            onPressed: () {
+              if (user?.isLibrarian == true) {
+                context.read<DashboardController>().fetchDashboard(isRefresh: true);
+              } else if (user?.isMember == true) {
+                context.read<LoansController>().fetchLoans(isRefresh: true);
+              }
+            },
+          ),
           IconButton(
             tooltip: 'Sign Out',
             icon: const Icon(Icons.logout_rounded),
@@ -64,7 +71,15 @@ class _HomeScreenState extends State<HomeScreen>
           ),
         ],
       ),
-      body: _buildBody(context, theme, authController, dashboardController, user, roleLabel),
+      body: _buildBody(
+        context,
+        theme,
+        authController,
+        dashboardController,
+        loansController,
+        user,
+        roleLabel,
+      ),
     );
   }
 
@@ -73,6 +88,7 @@ class _HomeScreenState extends State<HomeScreen>
     ThemeData theme,
     AuthController authController,
     DashboardController dashboardController,
+    LoansController loansController,
     dynamic user,
     String roleLabel,
   ) {
@@ -156,11 +172,11 @@ class _HomeScreenState extends State<HomeScreen>
     if (user.isLibrarian == true) {
       return _buildLibrarianDashboard(context, theme, dashboardController, user, roleLabel);
     } else {
-      return _buildMemberOverview(context, theme, user, roleLabel);
+      return _buildMemberOverview(context, theme, loansController, user, roleLabel);
     }
   }
 
-  /// Builds the complete Librarian Dashboard with metric cards and overdue loans.
+  /// Builds the complete Librarian Dashboard with 4 StatCards and recent loans.
   Widget _buildLibrarianDashboard(
     BuildContext context,
     ThemeData theme,
@@ -301,7 +317,7 @@ class _HomeScreenState extends State<HomeScreen>
           ),
           const SizedBox(height: 12),
 
-          // 2x2 Metrics Grid
+          // Four StatCards: total books, active members, active loans, overdue loans (in red)
           LayoutBuilder(
             builder: (context, constraints) {
               return GridView.count(
@@ -312,30 +328,30 @@ class _HomeScreenState extends State<HomeScreen>
                 physics: const NeverScrollableScrollPhysics(),
                 childAspectRatio: 1.35,
                 children: [
-                  DashboardMetricCard(
+                  StatCard(
                     title: 'Total Books',
-                    count: '${stats?.totalBooks ?? 0}',
+                    value: '${stats?.totalBooks ?? 0}',
                     icon: Icons.menu_book_rounded,
                     color: const Color(0xFF1E3A8A),
                   ),
-                  DashboardMetricCard(
+                  StatCard(
+                    title: 'Active Members',
+                    value: '${stats?.activeMembers ?? 0}',
+                    icon: Icons.people_alt_rounded,
+                    color: const Color(0xFF6366F1),
+                  ),
+                  StatCard(
                     title: 'Active Loans',
-                    count: '${stats?.activeLoans ?? 0}',
+                    value: '${stats?.activeLoans ?? 0}',
                     icon: Icons.assignment_turned_in_rounded,
                     color: const Color(0xFF0D9488),
                   ),
-                  DashboardMetricCard(
+                  StatCard(
                     title: 'Overdue Loans',
-                    count: '${stats?.overdueLoans ?? 0}',
+                    value: '${stats?.overdueLoans ?? 0}',
                     icon: Icons.warning_amber_rounded,
                     color: theme.colorScheme.error,
                     isDestructive: true,
-                  ),
-                  DashboardMetricCard(
-                    title: 'Members',
-                    count: '${stats?.totalMembers ?? 0}',
-                    icon: Icons.people_alt_rounded,
-                    color: const Color(0xFF6366F1),
                   ),
                 ],
               );
@@ -343,45 +359,20 @@ class _HomeScreenState extends State<HomeScreen>
           ),
           const SizedBox(height: 28),
 
-          // Overdue Loans Section Header
+          // Overdue Loans Section (backward compatible with previous dashboard widgets)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Text(
-                    'Overdue Loans',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  if (stats != null && stats.overdueLoansList.isNotEmpty)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.error,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        '${stats.overdueLoansList.length}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                ],
+              Text(
+                'Overdue Loans',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
           const SizedBox(height: 12),
 
-          // Overdue Loans List or Empty State
           if (stats == null || stats.overdueLoansList.isEmpty)
             Card(
               elevation: 0,
@@ -430,99 +421,400 @@ class _HomeScreenState extends State<HomeScreen>
             )
           else
             ...stats.overdueLoansList.map(
-              (loan) => OverdueLoanTile(loan: loan),
+              (item) => _OverdueLoanTileItem(item: item),
+            ),
+          const SizedBox(height: 28),
+
+          // Recent Loans Section
+          Text(
+            'Recent Loans',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          if (stats == null || stats.recentLoans.isEmpty)
+            Card(
+              elevation: 0,
+              color: theme.colorScheme.surfaceContainerLow,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24.0,
+                  vertical: 36.0,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.assignment_outlined,
+                      size: 44,
+                      color: theme.colorScheme.outline,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'No Recent Loans',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'No loans have been recorded yet.',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            ...stats.recentLoans.map(
+              (loan) => _RecentLoanItemTile(loan: loan),
             ),
         ],
       ),
     );
   }
 
-  /// Builds the overview for non-librarian member users.
+  /// Builds the overview for Member role: greeting with name, active & overdue loan counts.
   Widget _buildMemberOverview(
     BuildContext context,
     ThemeData theme,
+    LoansController loansController,
     dynamic user,
     String roleLabel,
   ) {
-    return Center(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 420),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Card(
-                elevation: 0,
-                color: theme.colorScheme.surfaceContainerLow,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      CircleAvatar(
-                        radius: 36,
-                        backgroundColor: theme.colorScheme.primaryContainer,
-                        child: Icon(
-                          Icons.person_rounded,
-                          size: 40,
-                          color: theme.colorScheme.onPrimaryContainer,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Welcome, ${user.username ?? "User"}',
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.secondaryContainer,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          'Role: $roleLabel',
-                          style: TextStyle(
-                            color: theme.colorScheme.onSecondaryContainer,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
+    if (loansController.isLoading && loansController.loans.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final memberLoans = loansController.loans;
+    final activeCount = memberLoans.where((l) => l.isActive).length;
+    final overdueCount = memberLoans.where((l) => l.isOverdue).length;
+
+    return RefreshIndicator(
+      onRefresh: () => loansController.fetchLoans(isRefresh: true),
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16.0),
+        children: [
+          // Greeting Card with member's name
+          Card(
+            elevation: 0,
+            color: theme.colorScheme.surfaceContainerLow,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 30,
+                    backgroundColor: theme.colorScheme.primaryContainer,
+                    child: Icon(
+                      Icons.person_rounded,
+                      size: 36,
+                      color: theme.colorScheme.onPrimaryContainer,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Hello, ${user.username ?? "Member"}!',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        'Welcome to Library Manager. Browse our book catalogue to view available titles.',
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
+                        const SizedBox(height: 4),
+                        Text(
+                          'Welcome to your library portal',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 24),
-                      FilledButton.icon(
-                        onPressed: () => context.go('/books'),
-                        icon: const Icon(Icons.menu_book_rounded),
-                        label: const Text('Browse Books Catalogue'),
-                      ),
-                      const SizedBox(height: 12),
-                      OutlinedButton.icon(
-                        onPressed: () => context.read<AuthController>().logout(),
-                        icon: const Icon(Icons.logout_rounded, size: 18),
-                        label: const Text('Sign Out'),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Overview Title
+          Text(
+            'My Loans Overview',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Member Loan Counts: Active and Overdue
+          LayoutBuilder(
+            builder: (context, constraints) {
+              return GridView.count(
+                crossAxisCount: constraints.maxWidth > 600 ? 2 : 2,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                childAspectRatio: 1.35,
+                children: [
+                  StatCard(
+                    title: 'Active Loans',
+                    value: '$activeCount',
+                    icon: Icons.assignment_turned_in_rounded,
+                    color: const Color(0xFF0D9488),
+                  ),
+                  StatCard(
+                    title: 'Overdue Loans',
+                    value: '$overdueCount',
+                    icon: Icons.warning_amber_rounded,
+                    color: theme.colorScheme.error,
+                    isDestructive: overdueCount > 0,
+                  ),
+                ],
+              );
+            },
+          ),
+          const SizedBox(height: 24),
+
+          // Active/Overdue Loans List summary
+          Text(
+            'Current Borrowed Books',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          if (memberLoans.where((l) => !l.isReturned).isEmpty)
+            Card(
+              elevation: 0,
+              color: theme.colorScheme.surfaceContainerLow,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24.0,
+                  vertical: 36.0,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.green.withValues(alpha: 0.12),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.check_circle_outline_rounded,
+                        size: 40,
+                        color: Colors.green,
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      'No Borrowed Books',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'You do not have any active or overdue loans at this time.',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
+            )
+          else
+            ...memberLoans
+                .where((l) => !l.isReturned)
+                .map((loan) => _RecentLoanItemTile(loan: loan)),
+        ],
+      ),
+    );
+  }
+}
+
+class _RecentLoanItemTile extends StatelessWidget {
+  final Loan loan;
+
+  const _RecentLoanItemTile({required this.loan});
+
+  String _formatDate(DateTime date) {
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isOverdue = loan.isOverdue;
+    final isReturned = loan.isReturned;
+
+    final badgeColor = isOverdue
+        ? theme.colorScheme.error
+        : (isReturned ? theme.colorScheme.outline : theme.colorScheme.primary);
+    final badgeText = isOverdue
+        ? '${loan.daysOverdue}d overdue'
+        : (isReturned ? 'Returned' : 'Active');
+
+    return Card(
+      elevation: 0,
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      color: theme.colorScheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: isOverdue
+            ? BorderSide(
+                color: theme.colorScheme.error.withValues(alpha: 0.3),
+                width: 1,
+              )
+            : BorderSide.none,
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        leading: CircleAvatar(
+          backgroundColor: badgeColor.withValues(alpha: 0.12),
+          child: Icon(
+            isOverdue
+                ? Icons.warning_amber_rounded
+                : (isReturned ? Icons.done_all_rounded : Icons.menu_book_rounded),
+            color: badgeColor,
+            size: 20,
+          ),
+        ),
+        title: Text(
+          loan.bookTitle ?? 'Untitled Book',
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (loan.memberName != null)
+              Text(
+                'Member: ${loan.memberName}',
+                style: theme.textTheme.bodySmall,
+              ),
+            Text(
+              'Due: ${_formatDate(loan.dueDate)}',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: isOverdue ? theme.colorScheme.error : null,
+                fontWeight: isOverdue ? FontWeight.bold : null,
+              ),
+            ),
+          ],
+        ),
+        trailing: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: badgeColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            badgeText,
+            style: TextStyle(
+              color: badgeColor,
+              fontWeight: FontWeight.bold,
+              fontSize: 11,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _OverdueLoanTileItem extends StatelessWidget {
+  final OverdueLoanItem item;
+
+  const _OverdueLoanTileItem({required this.item});
+
+  String _formatDate(DateTime date) {
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final errorColor = theme.colorScheme.error;
+
+    return Card(
+      elevation: 0,
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      color: theme.colorScheme.errorContainer.withValues(alpha: 0.25),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: errorColor.withValues(alpha: 0.3),
+          width: 1,
+        ),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        leading: CircleAvatar(
+          backgroundColor: errorColor.withValues(alpha: 0.12),
+          child: Icon(
+            Icons.warning_amber_rounded,
+            color: errorColor,
+            size: 20,
+          ),
+        ),
+        title: Text(
+          item.bookTitle,
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              item.memberName,
+              style: theme.textTheme.bodySmall,
+            ),
+            Text(
+              'Due: ${_formatDate(item.dueDate)}',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: errorColor,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        trailing: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: errorColor.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            '${item.daysOverdue} days overdue',
+            style: TextStyle(
+              color: errorColor,
+              fontWeight: FontWeight.bold,
+              fontSize: 11,
+            ),
           ),
         ),
       ),

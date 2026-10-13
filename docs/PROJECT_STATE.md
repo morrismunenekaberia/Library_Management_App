@@ -1,5 +1,5 @@
 # Project State (read this first)
-Last updated: 2026-10-13 by add Issue loan form to Loans feature
+Last updated: 2026-10-13 by build Home tab for both roles
 
 ## Stack and run commands
 - Backend: Node.js (Express, pg, bcrypt, jsonwebtoken). Run: `cd backend && npm start` (port 3000). Dev: `npm run dev`.
@@ -24,7 +24,7 @@ Last updated: 2026-10-13 by add Issue loan form to Loans feature
 | books | Complete | Complete | Restyled with M3 widgets (AppCard, SearchField, EmptyState, ErrorState, LoadingIndicator, RefreshIndicator); librarian controls protected. |
 | members | Complete | Complete | MemberListScreen, MemberFormScreen (createUser switch & one-time temp password dialog), delete confirmation, 409 error handling. |
 | loans | Complete | Complete | LoanListScreen (Active/Overdue/Returned ChoiceChips, Return action with confirmation, overdue highlight, friendly 409) & IssueLoanScreen (FAB, searchable member/book pickers, 14-day due date). |
-| dashboard | Derived | Complete | Uses books, loans, members endpoints client-side for 4 StatCards & overdue list. |
+| dashboard | Complete | Complete | GET /api/stats (clean architecture). Librarian: 4 StatCards & recent loans; Member: greeting & active/overdue counts; auto-refreshed on issue/return. |
 | settings | Complete | Complete | SettingsScreen shows user profile, role, debug API base URL, and logout with confirmation. |
 
 ## Key files per feature
@@ -33,7 +33,7 @@ Last updated: 2026-10-13 by add Issue loan form to Loans feature
 - Members: `backend/src/interfaces/http/routes/member.routes.js`, `mobile/lib/features/members/presentation/controllers/members_controller.dart`, `mobile/lib/features/members/presentation/screens/member_list_screen.dart`, `mobile/lib/features/members/presentation/screens/member_form_screen.dart`
 - Loans: `backend/src/interfaces/http/routes/loan.routes.js`, `mobile/lib/features/loans/presentation/controllers/loans_controller.dart`, `mobile/lib/features/loans/presentation/screens/loan_list_screen.dart`, `mobile/lib/features/loans/presentation/screens/issue_loan_screen.dart`
 - Settings: `mobile/lib/features/settings/presentation/screens/settings_screen.dart`
-- Dashboard: `mobile/lib/features/dashboard/presentation/controllers/dashboard_controller.dart`, `mobile/lib/features/auth/presentation/screens/home_screen.dart`
+- Dashboard: `backend/src/interfaces/http/routes/stats.routes.js`, `mobile/lib/features/dashboard/presentation/controllers/dashboard_controller.dart`, `mobile/lib/features/auth/presentation/screens/home_screen.dart`
 - Shell & Navigation: `mobile/lib/core/widgets/main_shell.dart`, `mobile/lib/core/router/app_router.dart`
 
 ## API contract
@@ -50,4 +50,4 @@ Last updated: 2026-10-13 by add Issue loan form to Loans feature
 - Known: Cloudflared quick tunnel URLs change when restarted without a named tunnel configuration.
 
 ## Next task
-- Member role screens: My Loans and Browse books tabs.
+- Member role screens: My Loans tab screen.

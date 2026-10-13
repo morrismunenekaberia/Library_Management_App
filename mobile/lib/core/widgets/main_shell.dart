@@ -101,9 +101,9 @@ class _MainShellState extends State<MainShell> {
           label: 'My Loans',
           icon: Icon(Icons.receipt_long_outlined),
           selectedIcon: Icon(Icons.receipt_long_rounded),
-          screen: PlaceholderTabScreen(
+          screen: LoanListScreen(
+            isReadOnly: true,
             title: 'My Loans',
-            icon: Icons.receipt_long_rounded,
           ),
         ),
         ShellTabItem(
