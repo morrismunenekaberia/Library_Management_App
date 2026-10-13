@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../features/auth/presentation/controllers/auth_controller.dart';
 import '../../features/auth/presentation/screens/home_screen.dart';
 import '../../features/books/presentation/screens/book_list_screen.dart';
+import '../../features/members/presentation/screens/member_list_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../widgets/placeholder_tab_screen.dart';
 
@@ -72,10 +73,7 @@ class _MainShellState extends State<MainShell> {
           label: 'Members',
           icon: Icon(Icons.people_outline_rounded),
           selectedIcon: Icon(Icons.people_rounded),
-          screen: PlaceholderTabScreen(
-            title: 'Members',
-            icon: Icons.people_rounded,
-          ),
+          screen: MemberListScreen(),
         ),
         ShellTabItem(
           label: 'Loans',
