@@ -28,6 +28,14 @@ import 'features/dashboard/domain/entities/dashboard_stats.dart';
 import 'features/dashboard/domain/repositories/dashboard_repository.dart';
 import 'features/dashboard/domain/usecases/get_librarian_dashboard.dart';
 import 'features/dashboard/presentation/controllers/dashboard_controller.dart';
+import 'features/loans/data/datasources/loans_remote_data_source.dart';
+import 'features/loans/data/repositories/loan_repository_impl.dart';
+import 'features/loans/domain/entities/loan.dart';
+import 'features/loans/domain/repositories/loan_repository.dart';
+import 'features/loans/domain/usecases/issue_loan.dart';
+import 'features/loans/domain/usecases/list_loans.dart';
+import 'features/loans/domain/usecases/return_loan.dart';
+import 'features/loans/presentation/controllers/loans_controller.dart';
 import 'features/members/data/datasources/members_remote_data_source.dart';
 import 'features/members/data/repositories/member_repository_impl.dart';
 import 'features/members/domain/entities/member.dart';
@@ -101,6 +109,19 @@ void main() {
     deleteMemberUseCase: deleteMember,
   );
 
+  // Loans feature dependency wiring
+  final loansRemoteDataSource = LoansRemoteDataSourceImpl(apiClient);
+  final loanRepository = LoanRepositoryImpl(loansRemoteDataSource);
+  final listLoans = ListLoans(loanRepository);
+  final issueLoan = IssueLoan(loanRepository);
+  final returnLoan = ReturnLoan(loanRepository);
+
+  final loansController = LoansController(
+    listLoansUseCase: listLoans,
+    issueLoanUseCase: issueLoan,
+    returnLoanUseCase: returnLoan,
+  );
+
   // Dashboard feature dependency wiring
   final dashboardRemoteDataSource = DashboardRemoteDataSourceImpl(apiClient);
   final dashboardRepository = DashboardRepositoryImpl(dashboardRemoteDataSource);
@@ -120,16 +141,19 @@ void main() {
         Provider<AuthRepository>.value(value: authRepository),
         Provider<BookRepository>.value(value: bookRepository),
         Provider<MemberRepository>.value(value: memberRepository),
+        Provider<LoanRepository>.value(value: loanRepository),
         Provider<DashboardRepository>.value(value: dashboardRepository),
         ChangeNotifierProvider<AuthController>.value(value: authController),
         ChangeNotifierProvider<BooksController>.value(value: booksController),
         ChangeNotifierProvider<MembersController>.value(value: membersController),
+        ChangeNotifierProvider<LoansController>.value(value: loansController),
         ChangeNotifierProvider<DashboardController>.value(value: dashboardController),
       ],
       child: LibraryApp(
         authController: authController,
         booksController: booksController,
         membersController: membersController,
+        loansController: loansController,
         dashboardController: dashboardController,
       ),
     ),
@@ -140,6 +164,7 @@ class LibraryApp extends StatefulWidget {
   final AuthController authController;
   final BooksController? booksController;
   final MembersController? membersController;
+  final LoansController? loansController;
   final DashboardController? dashboardController;
 
   const LibraryApp({
@@ -147,6 +172,7 @@ class LibraryApp extends StatefulWidget {
     required this.authController,
     this.booksController,
     this.membersController,
+    this.loansController,
     this.dashboardController,
   });
 
@@ -158,6 +184,7 @@ class _LibraryAppState extends State<LibraryApp> {
   late final _router = AppRouter.createRouter(widget.authController);
   late final BooksController _effectiveBooksController;
   late final MembersController _effectiveMembersController;
+  late final LoansController _effectiveLoansController;
   late final DashboardController _effectiveDashboardController;
 
   @override
@@ -181,6 +208,13 @@ class _LibraryAppState extends State<LibraryApp> {
           deleteMemberUseCase: const DeleteMember(_NoopMemberRepository()),
         );
 
+    _effectiveLoansController = widget.loansController ??
+        LoansController(
+          listLoansUseCase: const ListLoans(_NoopLoanRepository()),
+          issueLoanUseCase: const IssueLoan(_NoopLoanRepository()),
+          returnLoanUseCase: const ReturnLoan(_NoopLoanRepository()),
+        );
+
     _effectiveDashboardController = widget.dashboardController ??
         DashboardController(
           getLibrarianDashboardUseCase: const GetLibrarianDashboard(_NoopDashboardRepository()),
@@ -199,6 +233,9 @@ class _LibraryAppState extends State<LibraryApp> {
         ),
         ChangeNotifierProvider<MembersController>.value(
           value: _effectiveMembersController,
+        ),
+        ChangeNotifierProvider<LoansController>.value(
+          value: _effectiveLoansController,
         ),
         ChangeNotifierProvider<DashboardController>.value(
           value: _effectiveDashboardController,
@@ -349,4 +386,37 @@ class _NoopMemberRepository implements MemberRepository {
   @override
   Future<void> deleteMember(int id) async {}
 }
+
+/// Fallback repository used only if [LibraryApp] is constructed without [LoansController] in tests.
+class _NoopLoanRepository implements LoanRepository {
+  const _NoopLoanRepository();
+
+  @override
+  Future<List<Loan>> listLoans({String? status, int? memberId}) async => const [];
+
+  @override
+  Future<Loan> issueLoan({
+    required int bookId,
+    required int memberId,
+    String? dueDate,
+  }) async =>
+      Loan(
+        id: 1,
+        bookId: bookId,
+        memberId: memberId,
+        issuedAt: DateTime.now(),
+        dueDate: dueDate != null ? DateTime.parse(dueDate) : DateTime.now().add(const Duration(days: 14)),
+      );
+
+  @override
+  Future<Loan> returnLoan(int id) async => Loan(
+        id: id,
+        bookId: 1,
+        memberId: 1,
+        issuedAt: DateTime.now().subtract(const Duration(days: 5)),
+        dueDate: DateTime.now().add(const Duration(days: 9)),
+        returnedAt: DateTime.now(),
+      );
+}
+
 

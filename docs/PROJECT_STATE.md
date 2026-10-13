@@ -1,5 +1,5 @@
 # Project State (read this first)
-Last updated: 2026-10-13 by build Members feature vertical slice
+Last updated: 2026-10-13 by build Loans list and return action vertical slice
 
 ## Stack and run commands
 - Backend: Node.js (Express, pg, bcrypt, jsonwebtoken). Run: `cd backend && npm start` (port 3000). Dev: `npm run dev`.
@@ -23,7 +23,7 @@ Last updated: 2026-10-13 by build Members feature vertical slice
 | auth | Complete | Complete | Login, logout, session restore, auto-logout on 401. No registration. |
 | books | Complete | Complete | Restyled with M3 widgets (AppCard, SearchField, EmptyState, ErrorState, LoadingIndicator, RefreshIndicator); librarian controls protected. |
 | members | Complete | Complete | MemberListScreen, MemberFormScreen (createUser switch & one-time temp password dialog), delete confirmation, 409 error handling. |
-| loans | Complete | In progress | Domain and data layers built; presentation controllers built; screens pending. |
+| loans | Complete | Complete | LoanListScreen (Active/Overdue/Returned ChoiceChips, Return book action with confirmation, overdue highlight, friendly 409). Issue loan form pending. |
 | dashboard | Derived | Complete | Uses books, loans, members endpoints client-side for 4 StatCards & overdue list. |
 | settings | Complete | Complete | SettingsScreen shows user profile, role, debug API base URL, and logout with confirmation. |
 
@@ -31,7 +31,7 @@ Last updated: 2026-10-13 by build Members feature vertical slice
 - Auth: `backend/src/interfaces/http/routes/auth.routes.js`, `mobile/lib/features/auth/presentation/controllers/auth_controller.dart`, `mobile/lib/features/auth/presentation/screens/login_screen.dart`
 - Books: `backend/src/interfaces/http/routes/book.routes.js`, `mobile/lib/features/books/presentation/controllers/books_controller.dart`, `mobile/lib/features/books/presentation/screens/book_list_screen.dart`
 - Members: `backend/src/interfaces/http/routes/member.routes.js`, `mobile/lib/features/members/presentation/controllers/members_controller.dart`, `mobile/lib/features/members/presentation/screens/member_list_screen.dart`, `mobile/lib/features/members/presentation/screens/member_form_screen.dart`
-- Loans: `backend/src/interfaces/http/routes/loan.routes.js`, `mobile/lib/features/loans/presentation/controllers/loans_controller.dart`
+- Loans: `backend/src/interfaces/http/routes/loan.routes.js`, `mobile/lib/features/loans/presentation/controllers/loans_controller.dart`, `mobile/lib/features/loans/presentation/screens/loan_list_screen.dart`
 - Settings: `mobile/lib/features/settings/presentation/screens/settings_screen.dart`
 - Dashboard: `mobile/lib/features/dashboard/presentation/controllers/dashboard_controller.dart`, `mobile/lib/features/auth/presentation/screens/home_screen.dart`
 - Shell & Navigation: `mobile/lib/core/widgets/main_shell.dart`, `mobile/lib/core/router/app_router.dart`
@@ -50,4 +50,4 @@ Last updated: 2026-10-13 by build Members feature vertical slice
 - Known: Cloudflared quick tunnel URLs change when restarted without a named tunnel configuration.
 
 ## Next task
-- Build Loans feature screens (filter ChoiceChips: Active/Overdue/Returned, Return book confirmation, Issue loan form dialog, member & book pickers, 14-day default due date).
+- Build Issue Loan form (FAB in Loans tab, searchable active member picker, searchable available book picker, 14-day default due date).

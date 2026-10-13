@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../domain/entities/loan.dart';
 import '../controllers/loans_controller.dart';
+import 'issue_loan_screen.dart';
 
 /// Screen displaying the list of loans with ChoiceChips filter (Active, Overdue, Returned),
 /// pull-to-refresh, overdue highlights, and book return action.
@@ -100,6 +101,23 @@ class _LoanListScreenState extends State<LoanListScreen>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Loans'),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          final issued = await Navigator.of(context).push<bool>(
+            MaterialPageRoute(
+              builder: (_) => const IssueLoanScreen(),
+            ),
+          );
+          if (issued == true && mounted) {
+            context.read<LoansController>().fetchLoans(
+                  status: _selectedFilter,
+                  isRefresh: true,
+                );
+          }
+        },
+        icon: const Icon(Icons.add_task_rounded),
+        label: const Text('Issue Loan'),
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -385,3 +403,4 @@ class _LoanCard extends StatelessWidget {
     );
   }
 }
+
