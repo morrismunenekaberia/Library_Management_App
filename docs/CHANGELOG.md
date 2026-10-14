@@ -11,3 +11,4 @@
 2026-10-13 | replace app icon | mobile/pubspec.yaml, mobile/android/app/src/main/res/ | works
 2026-10-13 | refine video splash completion listener to play full clip | mobile/lib/features/splash/presentation/splash_screen.dart | works
 2026-10-14 | set splash screen minimum display duration to 5s | mobile/lib/features/splash/presentation/splash_screen.dart, mobile/lib/main.dart | works
+2026-10-14 | build release APK targeting ngrok backend URL | mobile/build/app/outputs/flutter-apk/app-release.apk | works

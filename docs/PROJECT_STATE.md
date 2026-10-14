@@ -1,5 +1,5 @@
 # Project State (read this first)
-Last updated: 2026-10-14 by set splash screen duration to 5s
+Last updated: 2026-10-14 by built release APK with ngrok URL
 
 ## Stack and run commands
 - Backend: Node.js (Express, pg, bcrypt, jsonwebtoken). Run: `cd backend && npm start` (port 3000). Dev: `npm run dev`.
