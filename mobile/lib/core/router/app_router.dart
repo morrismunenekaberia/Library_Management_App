@@ -26,16 +26,19 @@ class AppRouter {
       GlobalKey<NavigatorState>();
 
   /// Creates and configures the application router with authentication guards.
-  static GoRouter createRouter(AuthController authController) {
+  static GoRouter createRouter(
+    AuthController authController, {
+    String? initialLocation,
+  }) {
     return GoRouter(
       navigatorKey: rootNavigatorKey,
-      initialLocation: splashSeen ? homeRoute : splashRoute,
+      initialLocation: initialLocation ?? (splashSeen ? homeRoute : splashRoute),
       refreshListenable: authController,
       redirect: (context, state) {
         final loc = state.matchedLocation;
         final isSplash = loc == splashRoute;
 
-        // While on splash screen, do NOT redirect early — wait for splash to finish.
+        // While on splash screen and splash has not finished, never redirect away
         if (isSplash && !splashSeen) {
           return null;
         }
@@ -43,8 +46,9 @@ class AppRouter {
         final isAuthenticated = authController.isAuthenticated;
         final isLoggingIn = loc == loginRoute;
 
-        // If user is not authenticated, redirect to login
+        // If user is not authenticated, redirect to login (unless still on splash)
         if (!isAuthenticated) {
+          if (isSplash && !splashSeen) return null;
           return isLoggingIn ? null : loginRoute;
         }
 

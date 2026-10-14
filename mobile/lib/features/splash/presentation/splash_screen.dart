@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -14,10 +15,12 @@ import '../../../../core/router/app_router.dart';
 /// (or is skipped) and the session restore finishes.
 class SplashScreen extends StatefulWidget {
   final Future<void>? sessionRestoreFuture;
+  final Duration minDuration;
 
   const SplashScreen({
     super.key,
     this.sessionRestoreFuture,
+    this.minDuration = const Duration(seconds: 5),
   });
 
   /// The sampled background color matching the video (#D7D5D6).
@@ -33,12 +36,12 @@ class _SplashScreenState extends State<SplashScreen> {
   bool _isSessionRestored = false;
   bool _hasNavigated = false;
   late final Future<void> _restoreFuture;
+  late final DateTime _startTime;
 
   @override
   void initState() {
     super.initState();
-    // Cold start splash has been viewed for this process lifetime
-    AppRouter.splashSeen = true;
+    _startTime = DateTime.now();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -83,7 +86,7 @@ class _SplashScreenState extends State<SplashScreen> {
       // If the video fails to load or play, do not block the app
       if (mounted) {
         _isVideoFinishedOrSkipped = true;
-        _checkAndNavigate();
+        _checkAndNavigate(immediate: true);
       }
     }
   }
@@ -94,42 +97,82 @@ class _SplashScreenState extends State<SplashScreen> {
 
     if (controller.value.hasError) {
       _isVideoFinishedOrSkipped = true;
-      _checkAndNavigate();
+      _checkAndNavigate(immediate: true);
       return;
     }
 
     final position = controller.value.position;
     final duration = controller.value.duration;
 
-    if (duration > Duration.zero && position >= duration) {
-      _isVideoFinishedOrSkipped = true;
-      _checkAndNavigate();
+    // Check if the video reached the end.
+    // video_player events can fire with slight rounding discrepancies near the end,
+    // or when playback pauses at the end. We check both threshold and isPlaying state.
+    if (duration > Duration.zero) {
+      final isNearEnd = position >= duration ||
+          (duration - position).inMilliseconds <= 100;
+      final stoppedAtEnd = !controller.value.isPlaying &&
+          position >= duration - const Duration(milliseconds: 300);
+
+      if (isNearEnd || stoppedAtEnd) {
+        _isVideoFinishedOrSkipped = true;
+        _checkAndNavigate();
+      }
     }
   }
 
+  Timer? _delayTimer;
+
   void _skip() {
-    if (_isVideoFinishedOrSkipped) return;
+    if (_hasNavigated) return;
+    _delayTimer?.cancel();
+    _delayTimer = null;
     _isVideoFinishedOrSkipped = true;
     _controller?.pause();
-    _checkAndNavigate();
+    _checkAndNavigate(immediate: true);
   }
 
-  void _checkAndNavigate() {
+  void _checkAndNavigate({bool immediate = false}) {
     if (!mounted || _hasNavigated) return;
 
     if (_isVideoFinishedOrSkipped && _isSessionRestored) {
-      _hasNavigated = true;
-      final authController = context.read<AuthController>();
-      final destination = authController.isAuthenticated
-          ? AppRouter.homeRoute
-          : AppRouter.loginRoute;
+      if (immediate || widget.minDuration == Duration.zero) {
+        _delayTimer?.cancel();
+        _delayTimer = null;
+        _doNavigate();
+        return;
+      }
 
-      context.go(destination);
+      if (_delayTimer != null) return;
+
+      final elapsed = DateTime.now().difference(_startTime);
+      final remaining = widget.minDuration - elapsed;
+      if (remaining <= Duration.zero) {
+        _doNavigate();
+      } else {
+        _delayTimer = Timer(remaining, () {
+          if (mounted && !_hasNavigated) {
+            _doNavigate();
+          }
+        });
+      }
     }
+  }
+
+  void _doNavigate() {
+    if (!mounted || _hasNavigated) return;
+    _hasNavigated = true;
+    AppRouter.splashSeen = true;
+    final authController = context.read<AuthController>();
+    final destination = authController.isAuthenticated
+        ? AppRouter.homeRoute
+        : AppRouter.loginRoute;
+
+    context.go(destination);
   }
 
   @override
   void dispose() {
+    _delayTimer?.cancel();
     _controller?.removeListener(_videoListener);
     _controller?.dispose();
     super.dispose();

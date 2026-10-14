@@ -9,3 +9,5 @@
 2026-10-13 | finish member experience | mobile/lib/core/widgets/main_shell.dart, mobile/lib/features/loans/presentation/screens/loan_list_screen.dart, mobile/lib/core/router/app_router.dart | works
 2026-10-13 | add video splash screen shown on cold start | mobile/lib/features/splash/presentation/splash_screen.dart, mobile/lib/core/router/app_router.dart, mobile/lib/main.dart, mobile/pubspec.yaml | works
 2026-10-13 | replace app icon | mobile/pubspec.yaml, mobile/android/app/src/main/res/ | works
+2026-10-13 | refine video splash completion listener to play full clip | mobile/lib/features/splash/presentation/splash_screen.dart | works
+2026-10-14 | set splash screen minimum display duration to 5s | mobile/lib/features/splash/presentation/splash_screen.dart, mobile/lib/main.dart | works

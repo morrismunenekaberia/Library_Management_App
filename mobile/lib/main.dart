@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'core/api_client/api_client.dart';
 import 'core/constants/app_constants.dart';
@@ -152,6 +153,7 @@ void main() {
         membersController: membersController,
         loansController: loansController,
         dashboardController: dashboardController,
+        showSplash: true,
       ),
     ),
   );
@@ -163,6 +165,7 @@ class LibraryApp extends StatefulWidget {
   final MembersController? membersController;
   final LoansController? loansController;
   final DashboardController? dashboardController;
+  final bool showSplash;
 
   const LibraryApp({
     super.key,
@@ -171,6 +174,7 @@ class LibraryApp extends StatefulWidget {
     this.membersController,
     this.loansController,
     this.dashboardController,
+    this.showSplash = false,
   });
 
   @override
@@ -178,7 +182,7 @@ class LibraryApp extends StatefulWidget {
 }
 
 class _LibraryAppState extends State<LibraryApp> {
-  late final _router = AppRouter.createRouter(widget.authController);
+  late final GoRouter _router;
   late final BooksController _effectiveBooksController;
   late final MembersController _effectiveMembersController;
   late final LoansController _effectiveLoansController;
@@ -187,6 +191,12 @@ class _LibraryAppState extends State<LibraryApp> {
   @override
   void initState() {
     super.initState();
+    _router = AppRouter.createRouter(
+      widget.authController,
+      initialLocation: (widget.showSplash && !AppRouter.splashSeen)
+          ? AppRouter.splashRoute
+          : AppRouter.homeRoute,
+    );
     _effectiveBooksController = widget.booksController ??
         BooksController(
           listBooksUseCase: const ListBooks(_NoopBookRepository()),
